@@ -1,0 +1,12 @@
+# EditorConfig is awesome: http://EditorConfig.org
+
+root = false
+
+[*]
+end_of_line = lf
+insert_final_newline = true
+charset = utf-8
+
+[*.go]
+indent_style = tab
+trim_trailing_whitespace = true
