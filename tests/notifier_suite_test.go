@@ -157,7 +157,8 @@ var _ = Describe("Notifier", func() {
 				Expect(err).ShouldNot(HaveOccurred())
 			})
 			It("one notification should be sent, one rescheduled", func() {
-				notifications, _ := testDb.getNotifications(0, -1)
+				notifications, err := testDb.getNotifications(0, -1)
+				Expect(err).ShouldNot(HaveOccurred())
 				Expect(len(notifications)).To(Equal(1))
 				Expect(notifications[0].SendFail).To(Equal(1))
 				Expect(notifications[0].Contact.ID).To(Equal(contacts[5].ID))
@@ -185,7 +186,8 @@ var _ = Describe("Notifier", func() {
 					Expect(err).ShouldNot(HaveOccurred())
 				})
 				It("notification should be rescheduled after 1 min", func() {
-					notifications, _ := testDb.getNotifications(0, -1)
+					notifications, err := testDb.getNotifications(0, -1)
+					Expect(err).ShouldNot(HaveOccurred())
 					Expect(len(notifications)).To(Equal(1))
 					Expect(notifications[0].SendFail).To(Equal(1))
 					Expect(notifications[0].Timestamp).To(Equal(notifier.GetNow().Add(time.Minute).Unix()))
@@ -204,7 +206,8 @@ var _ = Describe("Notifier", func() {
 			})
 
 			It("second notification should be rescheduled after 1 min", func() {
-				notifications, _ := testDb.getNotifications(0, -1)
+				notifications, err := testDb.getNotifications(0, -1)
+				Expect(err).ShouldNot(HaveOccurred())
 				Expect(len(notifications)).To(Equal(1))
 				Expect(notifications[0].SendFail).To(Equal(1))
 				Expect(notifications[0].Timestamp).To(Equal(notifier.GetNow().Add(time.Minute).Unix()))
