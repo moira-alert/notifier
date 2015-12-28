@@ -65,11 +65,6 @@ var _ = Describe("Notifier", func() {
 	BeforeSuite(func() {
 		log, _ = logging.GetLogger("notifier")
 		notifier.SetLogger(log)
-		senderSettings := make(map[string]string)
-		senderSettings["type"] = "email"
-		notifier.RegisterSender(senderSettings, &badSender{})
-		senderSettings["type"] = "slack"
-		notifier.RegisterSender(senderSettings, &timeoutSender{})
 		testConfig.dict["notifier"] = make(map[string]string)
 		testConfig.dict["notifier"]["sender_timeout"] = "0s10ms"
 		testConfig.dict["notifier"]["resending_timeout"] = "24:00"
@@ -83,7 +78,7 @@ var _ = Describe("Notifier", func() {
 		log.Debug("Using now time: %s, %s", now, now.Weekday())
 	})
 
-	AfterSuite(func() {
+	AfterEach(func() {
 		notifier.StopSenders()
 	})
 
@@ -107,6 +102,11 @@ var _ = Describe("Notifier", func() {
 		notifier.GetNow = func() time.Time {
 			return time.Unix(1441188915, 0) // 2 Сентябрь 2015 г. 15:15:15 (GMT +5)
 		}
+		senderSettings := make(map[string]string)
+		senderSettings["type"] = "email"
+		notifier.RegisterSender(senderSettings, &badSender{})
+		senderSettings["type"] = "slack"
+		notifier.RegisterSender(senderSettings, &timeoutSender{})
 	})
 
 	Context("When one invalid event arrives", func() {
