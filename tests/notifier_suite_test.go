@@ -45,6 +45,7 @@ var (
 	testConfig = testSettings{
 		make(map[string]map[string]string),
 	}
+	sendersRunning = false
 )
 
 func TestNotifier(t *testing.T) {
@@ -79,7 +80,7 @@ var _ = Describe("Notifier", func() {
 	})
 
 	AfterEach(func() {
-		notifier.StopSenders()
+		stopSenders()
 	})
 
 	BeforeEach(func() {
@@ -107,6 +108,7 @@ var _ = Describe("Notifier", func() {
 		notifier.RegisterSender(senderSettings, &badSender{})
 		senderSettings["type"] = "slack"
 		notifier.RegisterSender(senderSettings, &timeoutSender{})
+		sendersRunning = true
 	})
 
 	Context("When one invalid event arrives", func() {
@@ -152,6 +154,7 @@ var _ = Describe("Notifier", func() {
 					SubscriptionID: subscriptions[4].ID,
 				}, false)
 				err = notifier.ProcessScheduledNotifications()
+				stopSenders()
 			})
 			It("should not processed without error", func() {
 				Expect(err).ShouldNot(HaveOccurred())
@@ -183,6 +186,7 @@ var _ = Describe("Notifier", func() {
 			Context("When sending notification failure", func() {
 				BeforeEach(func() {
 					err = notifier.ProcessScheduledNotifications()
+					stopSenders()
 					Expect(err).ShouldNot(HaveOccurred())
 				})
 				It("notification should be rescheduled after 1 min", func() {
@@ -203,6 +207,7 @@ var _ = Describe("Notifier", func() {
 					err = notifier.ProcessScheduledNotifications()
 					Expect(err).ShouldNot(HaveOccurred())
 				}
+				stopSenders()
 			})
 
 			It("second notification should be rescheduled after 1 min", func() {
@@ -535,4 +540,11 @@ func generateTestEvents(n int, subscriptionID string) chan *notifier.EventData {
 		close(ch)
 	}()
 	return ch
+}
+
+func stopSenders() {
+	if sendersRunning {
+		notifier.StopSenders()
+	}
+	sendersRunning = false
 }
