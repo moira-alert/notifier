@@ -16,6 +16,7 @@ import (
 	"github.com/moira-alert/notifier/script"
 	"github.com/moira-alert/notifier/slack"
 	"github.com/moira-alert/notifier/telegram"
+	"github.com/moira-alert/notifier/twilio"
 
 	"github.com/gosexy/to"
 	"github.com/gosexy/yaml"
@@ -144,6 +145,14 @@ func configureSenders() error {
 			}
 		case "telegram":
 			if err := notifier.RegisterSender(senderSettings, &telegram.Sender{}); err != nil {
+				log.Fatalf("Can not register sender %s: %s", senderSettings["type"], err)
+			}
+		case "twilio sms":
+			if err := notifier.RegisterSender(senderSettings, &twilio.Sender{}); err != nil {
+				log.Fatalf("Can not register sender %s: %s", senderSettings["type"], err)
+			}
+		case "twilio voice":
+			if err := notifier.RegisterSender(senderSettings, &twilio.Sender{}); err != nil {
 				log.Fatalf("Can not register sender %s: %s", senderSettings["type"], err)
 			}
 		// case "email":
