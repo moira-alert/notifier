@@ -3,7 +3,6 @@ package twilio
 import (
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/op/go-logging"
@@ -13,25 +12,25 @@ import (
 	twilio "github.com/carlosdp/twiliogo"
 )
 
-type _SendEventsTwilio interface {
+type sendEventsTwilio interface {
 	SendEvents(events []notifier.EventData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error
 }
 
-type _TwilioSender struct {
+type twilioSender struct {
 	client       *twilio.TwilioClient
 	APIFromPhone string
 	log          *logging.Logger
 }
 
-type _TwilioSenderSms struct {
-	_TwilioSender
+type twilioSenderSms struct {
+	twilioSender
 }
 
-type _TwilioSenderVoice struct {
-	_TwilioSender
+type twilioSenderVoice struct {
+	twilioSender
 }
 
-func (smsSender *_TwilioSenderSms) SendEvents(events []notifier.EventData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error {
+func (smsSender *twilioSenderSms) SendEvents(events []notifier.EventData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error {
 	var lmessage string
 
 	if len(events) == 1 {
@@ -79,51 +78,45 @@ func (smsSender *_TwilioSenderSms) SendEvents(events []notifier.EventData, conta
 	return nil
 }
 
-func (voiceSender *_TwilioSenderVoice) SendEvents(events []notifier.EventData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error {
+func (voiceSender *twilioSenderVoice) SendEvents(events []notifier.EventData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error {
 	twilio.NewCall(voiceSender.client, voiceSender.APIFromPhone, contact.Value, nil)
 	return nil
 }
 
-//-----------------------------------------------------------------------------
-//
-//
-//
-//-----------------------------------------------------------------------------
-
 // Sender implements moira sender interface via twilio
 type Sender struct {
-	sender _SendEventsTwilio
+	sender sendEventsTwilio
 }
 
 //Init read yaml config
-func (sender *Sender) Init(_senderSettings map[string]string, _logger *logging.Logger) error {
-	lAPISid := _senderSettings["api_sid"]
-	if lAPISid == "" {
+func (sender *Sender) Init(senderSettings map[string]string, logger *logging.Logger) error {
+	apiSID := senderSettings["api_sid"]
+	if apiSID == "" {
 		return fmt.Errorf("Can not read twilio api_sid from config")
 	}
 
-	lAPISecret := _senderSettings["api_secret"]
-	if lAPISecret == "" {
+	apiSecret := senderSettings["api_secret"]
+	if apiSecret == "" {
 		return fmt.Errorf("Can not read twilio api_secret from config")
 	}
 
-	lAPIFromPhone := _senderSettings["api_fromphone"]
-	if lAPIFromPhone == "" {
+	apiFromPhone := senderSettings["api_fromphone"]
+	if apiFromPhone == "" {
 		return fmt.Errorf("Can not read twilio from phone")
 	}
 
-	lAPItype := _senderSettings["type"][strings.Index(_senderSettings["type"], " ")+1 : len(_senderSettings["type"])]
-	ltwilioClient := twilio.NewClient(lAPISid, lAPISecret)
+	apiType := senderSettings["type"]
+	twilioClient := twilio.NewClient(apiSID, apiSecret)
 
-	switch lAPItype {
-	case "sms":
-		sender.sender = &_TwilioSenderSms{_TwilioSender{ltwilioClient, lAPIFromPhone, _logger}}
+	switch apiType {
+	case "twilio sms":
+		sender.sender = &twilioSenderSms{twilioSender{twilioClient, apiFromPhone, logger}}
 
-	case "voice":
-		sender.sender = &_TwilioSenderVoice{_TwilioSender{ltwilioClient, lAPIFromPhone, _logger}}
+	case "twilio voice":
+		sender.sender = &twilioSenderVoice{twilioSender{twilioClient, apiFromPhone, logger}}
 
 	default:
-		return fmt.Errorf("Wrong twilio type: %s", lAPItype)
+		return fmt.Errorf("Wrong twilio type: %s", apiType)
 	}
 
 	return nil
