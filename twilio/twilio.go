@@ -68,7 +68,7 @@ func (smsSender *_TwilioSenderSms) SendEvents(events []notifier.EventData, conta
 	}
 
 	smsSender.log.Debug("Calling twilio sms api to phone %s and message body %s", contact.Value, lmessage)
-	ltwiliomessage, err := twilio.NewMessage(smsSender.client, contact.Value, smsSender.APIFromPhone, twilio.Body(lmessage))
+	ltwiliomessage, err := twilio.NewMessage(smsSender.client, smsSender.APIFromPhone, contact.Value, twilio.Body(lmessage))
 
 	if err != nil {
 		return fmt.Errorf("Failed to send message to contact %s: %s", contact.Value, err.Error())
@@ -80,7 +80,7 @@ func (smsSender *_TwilioSenderSms) SendEvents(events []notifier.EventData, conta
 }
 
 func (voiceSender *_TwilioSenderVoice) SendEvents(events []notifier.EventData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error {
-	twilio.NewCall(voiceSender.client, contact.Value, voiceSender.APIFromPhone, nil)
+	twilio.NewCall(voiceSender.client, voiceSender.APIFromPhone, contact.Value, nil)
 	return nil
 }
 
