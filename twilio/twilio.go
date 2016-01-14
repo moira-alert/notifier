@@ -3,7 +3,7 @@ package twilio
 import (
 	"fmt"
 	"strconv"
-  "strings"
+	"strings"
 	"time"
 
 	"github.com/op/go-logging"
@@ -13,29 +13,29 @@ import (
 	twilio "github.com/carlosdp/twiliogo"
 )
 
-type SendEventsTwilio interface {
+type _SendEventsTwilio interface {
 	SendEvents(events []notifier.EventData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error
 }
 
-type TwilioSender struct {
-	client *twilio.TwilioClient
+type _TwilioSender struct {
+	client       *twilio.TwilioClient
 	APIFromPhone string
-  log *logging.Logger
+	log          *logging.Logger
 }
 
-type TwilioSenderSms struct {
-	TwilioSender
+type _TwilioSenderSms struct {
+	_TwilioSender
 }
 
-type TwilioSenderVoice struct {
-	TwilioSender
+type _TwilioSenderVoice struct {
+	_TwilioSender
 }
 
-func (self *TwilioSenderSms) SendEvents(events []notifier.EventData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error {
-	var l_message string
+func (smsSender *_TwilioSenderSms) SendEvents(events []notifier.EventData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error {
+	var lmessage string
 
 	if len(events) == 1 {
-		l_message = events[0].State + " "
+		lmessage = events[0].State + " "
 	} else {
 		currentValue := make(map[string]int)
 		for _, event := range events {
@@ -44,43 +44,43 @@ func (self *TwilioSenderSms) SendEvents(events []notifier.EventData, contact not
 		allStates := [...]string{"OK", "WARN", "ERROR", "NODATA", "TEST"}
 		for _, state := range allStates {
 			if currentValue[state] > 0 {
-				l_message = fmt.Sprintf("%s %s", l_message, state)
+				lmessage = fmt.Sprintf("%s %s", lmessage, state)
 			}
 		}
 	}
 
 	for _, tag := range trigger.Tags {
-		l_message += "[" + tag + "]"
+		lmessage += "[" + tag + "]"
 	}
-	l_message += " " + trigger.Name + "\n\n"
+	lmessage += " " + trigger.Name + "\n\n"
 
 	for _, event := range events {
 		value := strconv.FormatFloat(event.Value, 'f', -1, 64)
-		l_message += fmt.Sprintf("%s: %s = %s (%s to %s)\n", time.Unix(event.Timestamp, 0).Format("15:04"), event.Metric, value, event.OldState, event.State)
+		lmessage += fmt.Sprintf("%s: %s = %s (%s to %s)\n", time.Unix(event.Timestamp, 0).Format("15:04"), event.Metric, value, event.OldState, event.State)
 	}
 
 	if len(events) > 5 {
-		l_message += fmt.Sprintf("\n...and %d more events.", len(events)-5)
+		lmessage += fmt.Sprintf("\n...and %d more events.", len(events)-5)
 	}
 
 	if throttled {
-		l_message += "\nPlease, fix your system or tune this trigger to generate less events."
+		lmessage += "\nPlease, fix your system or tune this trigger to generate less events."
 	}
 
-	self.log.Debug("Calling twilio sms api to phone %s and message body %s", contact.Value, l_message)
-	l_twiliomessage, err := twilio.NewMessage(self.client, contact.Value, self.APIFromPhone, twilio.Body(l_message))
+	smsSender.log.Debug("Calling twilio sms api to phone %s and message body %s", contact.Value, lmessage)
+	ltwiliomessage, err := twilio.NewMessage(smsSender.client, contact.Value, smsSender.APIFromPhone, twilio.Body(lmessage))
 
 	if err != nil {
 		return fmt.Errorf("Failed to send message to contact %s: %s", contact.Value, err.Error())
-	} else {
-		self.log.Debug(fmt.Sprintf("message send to twilio with status: %s", l_twiliomessage.Status))
 	}
 
+	smsSender.log.Debug(fmt.Sprintf("message send to twilio with status: %s", ltwiliomessage.Status))
+
 	return nil
 }
 
-func (self *TwilioSenderVoice) SendEvents(events []notifier.EventData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error {
-	twilio.NewCall(self.client, contact.Value, self.APIFromPhone, nil)
+func (voiceSender *_TwilioSenderVoice) SendEvents(events []notifier.EventData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error {
+	twilio.NewCall(voiceSender.client, contact.Value, voiceSender.APIFromPhone, nil)
 	return nil
 }
 
@@ -89,46 +89,47 @@ func (self *TwilioSenderVoice) SendEvents(events []notifier.EventData, contact n
 //
 //
 //-----------------------------------------------------------------------------
+
 // Sender implements moira sender interface via twilio
 type Sender struct {
-	sender SendEventsTwilio
+	sender _SendEventsTwilio
 }
 
 //Init read yaml config
-func (self *Sender) Init(_senderSettings map[string]string, _logger *logging.Logger) error {
-	l_APISid := _senderSettings["api_sid"]
-	if l_APISid == "" {
+func (sender *Sender) Init(_senderSettings map[string]string, _logger *logging.Logger) error {
+	lAPISid := _senderSettings["api_sid"]
+	if lAPISid == "" {
 		return fmt.Errorf("Can not read twilio api_sid from config")
 	}
 
-	l_APISecret := _senderSettings["api_secret"]
-	if l_APISecret == "" {
+	lAPISecret := _senderSettings["api_secret"]
+	if lAPISecret == "" {
 		return fmt.Errorf("Can not read twilio api_secret from config")
 	}
 
-	l_APIFromPhone := _senderSettings["api_fromphone"]
-	if l_APIFromPhone == "" {
+	lAPIFromPhone := _senderSettings["api_fromphone"]
+	if lAPIFromPhone == "" {
 		return fmt.Errorf("Can not read twilio from phone")
 	}
 
-	l_APItype := _senderSettings["type"][strings.Index(_senderSettings["type"], " ") + 1: len(_senderSettings["type"])]
-	l_twilioClient:= twilio.NewClient(l_APISid, l_APISecret)
+	lAPItype := _senderSettings["type"][strings.Index(_senderSettings["type"], " ")+1 : len(_senderSettings["type"])]
+	ltwilioClient := twilio.NewClient(lAPISid, lAPISecret)
 
-	switch l_APItype {
+	switch lAPItype {
 	case "sms":
-		self.sender = &TwilioSenderSms{TwilioSender{l_twilioClient, l_APIFromPhone, _logger}}
+		sender.sender = &_TwilioSenderSms{_TwilioSender{ltwilioClient, lAPIFromPhone, _logger}}
 
 	case "voice":
-		self.sender = &TwilioSenderVoice{TwilioSender{l_twilioClient, l_APIFromPhone, _logger}}
+		sender.sender = &_TwilioSenderVoice{_TwilioSender{ltwilioClient, lAPIFromPhone, _logger}}
 
 	default:
-		return fmt.Errorf("Wrong twilio type: %s", l_APItype)
+		return fmt.Errorf("Wrong twilio type: %s", lAPItype)
 	}
 
 	return nil
 }
 
 //SendEvents implements Sender interface Send
-func (self *Sender) SendEvents(events []notifier.EventData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error {
-	return self.sender.SendEvents(events, contact, trigger, throttled)
+func (sender *Sender) SendEvents(events []notifier.EventData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error {
+	return sender.sender.SendEvents(events, contact, trigger, throttled)
 }
