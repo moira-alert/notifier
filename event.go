@@ -87,7 +87,7 @@ func FetchEvents(shutdown chan bool, wg *sync.WaitGroup) {
 					eventsReceived.Mark(1)
 					if err := ProcessEvent(*event); err != nil {
 						eventsProcessingFailed.Mark(1)
-						log.Error("Failed processEvent. %s", err.Error())
+						log.Errorf("Failed processEvent. %s", err)
 					}
 				}
 			}

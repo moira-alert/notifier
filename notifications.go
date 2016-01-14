@@ -64,7 +64,7 @@ func calculateNextDelivery(event *EventData) (time.Time, bool) {
 					next = now.Add(level.delay)
 					log.Debug("Trigger %s switched %d times in last %s, delaying next notification for %s", event.TriggerID, count, level.duration, level.delay)
 					if err := db.SetTriggerThrottlingTimestamp(event.TriggerID, next); err != nil {
-						log.Error("Failed to set trigger throttling timestamp: %s", err.Error())
+						log.Errorf("Failed to set trigger throttling timestamp: %s", err)
 					}
 					alarmFatigue = true
 					break
@@ -79,7 +79,7 @@ func calculateNextDelivery(event *EventData) (time.Time, bool) {
 
 	next, err = subscription.Schedule.CalculateNextDelivery(next)
 	if err != nil {
-		log.Error("Failed to aply schedule for subscriptionID: %s. %s.", event.SubscriptionID, err.Error())
+		log.Errorf("Failed to aply schedule for subscriptionID: %s. %s.", event.SubscriptionID, err)
 	}
 	return next, alarmFatigue
 }
@@ -208,7 +208,7 @@ func (pkg notificationPackage) resend(reason string) {
 	} else {
 		for _, event := range pkg.Events {
 			if err := scheduleNotification(event, pkg.Trigger, pkg.Contact, pkg.Throttled, pkg.FailCount+1); err != nil {
-				log.Error("Can not reschedule notification %s", err.Error())
+				log.Errorf("Can not reschedule notification: %s", err)
 			}
 		}
 	}

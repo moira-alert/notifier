@@ -21,12 +21,12 @@ func InitMetrics() {
 	if graphiteURI != "" {
 		graphiteAddr, err := net.ResolveTCPAddr("tcp", graphiteURI)
 		if err != nil {
-			log.Error("Can not resolve graphiteURI %s: %s", graphiteURI, err.Error())
+			log.Errorf("Can not resolve graphiteURI %s: %s", graphiteURI, err)
 			return
 		}
 		hostname, err := os.Hostname()
 		if err != nil {
-			log.Error("Can not get OS hostname %s", err.Error())
+			log.Errorf("Can not get OS hostname: %s", err)
 			return
 		}
 		shortname := strings.Split(hostname, ".")[0]
