@@ -108,7 +108,7 @@ func (sender *Sender) Init(senderSettings map[string]string, logger *logging.Log
 		sender.sender = &twilioSenderSms{twilioSender{twilioClient, apiFromPhone, logger}}
 
 	case "twilio voice":
-    voiceUrl := senderSettings["voiceurl"]
+		voiceUrl := senderSettings["voiceurl"]
 		if voiceUrl == "" {
 			return fmt.Errorf("Can not read [" + apiType + "] voiceurl param from config")
 		}
