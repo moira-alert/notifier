@@ -4,6 +4,8 @@ import (
 	"sync"
 )
 
+var eventStates = [...]string{"OK", "WARN", "ERROR", "NODATA", "TEST"}
+
 // ProcessEvent generate notifications from EventData
 func ProcessEvent(event EventData) error {
 	var (
@@ -93,4 +95,19 @@ func FetchEvents(shutdown chan bool, wg *sync.WaitGroup) {
 			}
 		}
 	}
+}
+
+// GetSubjectState returns the most critial state of events
+func (events EventsData) GetSubjectState() string{
+	result := ""
+	states := make(map[string]bool)
+	for _, event := range events {
+		states[event.State] = true
+	}
+	for _, state := range eventStates {
+		if states[state] {
+			result = state
+		}
+	}
+	return result
 }

@@ -32,35 +32,13 @@ func (sender *Sender) Init(senderSettings map[string]string, logger *logging.Log
 }
 
 //SendEvents implements Sender interface Send
-func (sender *Sender) SendEvents(events []notifier.EventData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error {
+func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error {
 	api := pushover.New(sender.APIToken)
 	recipient := pushover.NewRecipient(contact.Value)
 
-	var (
-		title     string
-		timestamp int64
-	)
-
-	if len(events) == 1 {
-		title = events[0].State + " "
-		timestamp = events[0].Timestamp
-	} else {
-		currentValue := make(map[string]int)
-		for _, event := range events {
-			currentValue[event.State]++
-		}
-		allStates := [...]string{"OK", "WARN", "ERROR", "NODATA", "TEST"}
-		for _, state := range allStates {
-			if currentValue[state] > 0 {
-				title = fmt.Sprintf("%s %s", title, state)
-			}
-		}
-	}
-
-	for _, tag := range trigger.Tags {
-		title += "[" + tag + "]"
-	}
-	title += " " + trigger.Name
+	subjectState := events.GetSubjectState()
+	title := fmt.Sprintf("%s %s %s", subjectState, trigger.Name, trigger.GetTags())
+	timestamp := events[len(events) - 1].Timestamp
 
 	var message string
 	priority := pushover.PriorityNormal

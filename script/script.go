@@ -46,7 +46,7 @@ func (sender *Sender) Init(senderSettings map[string]string, logger *logging.Log
 }
 
 //SendEvents implements Sender interface Send
-func (sender *Sender) SendEvents(events []notifier.EventData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error {
+func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error {
 
 	execString := strings.Replace(sender.Exec, "${trigger_name}", trigger.Name, -1)
 	execString = strings.Replace(execString, "${contact_value}", contact.Value, -1)

@@ -101,27 +101,12 @@ func (sender *Sender) SetLogger(logger *logging.Logger) {
 }
 
 // MakeMessage prepare message to send
-func (sender *Sender) MakeMessage(events []notifier.EventData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) *gomail.Message {
-	var subject string
-	for _, tag := range trigger.Tags {
-		subject = fmt.Sprintf("%s[%s]", subject, tag)
-	}
-	if len(events) == 1 {
-		subject = fmt.Sprintf("%s %s", subject, events[0].State)
-	} else {
-		currentValue := make(map[string]int)
-		for _, event := range events {
-			currentValue[event.State]++
-		}
-		allStates := [...]string{"OK", "WARN", "ERROR", "NODATA", "TEST"}
-		for _, state := range allStates {
-			if currentValue[state] > 0 {
-				subject = fmt.Sprintf("%s %s", subject, state)
-			}
-		}
-	}
-
-	subject = fmt.Sprintf("%s %s", subject, trigger.Name)
+func (sender *Sender) MakeMessage(events notifier.EventsData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) *gomail.Message {
+	
+	state := events.GetSubjectState()
+	tags := trigger.GetTags()
+	
+	subject := fmt.Sprintf("%s %s %s", state, trigger.Name, tags)
 
 	templateData := struct {
 		Link      string
@@ -157,7 +142,7 @@ func (sender *Sender) MakeMessage(events []notifier.EventData, contact notifier.
 }
 
 //SendEvents implements Sender interface Send
-func (sender *Sender) SendEvents(events []notifier.EventData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error {
+func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error {
 
 	m := sender.MakeMessage(events, contact, trigger, throttled)
 

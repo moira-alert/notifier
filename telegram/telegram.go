@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"strconv"
 	"time"
+	"bytes"
 
 	"github.com/moira-alert/notifier"
 
@@ -32,52 +33,37 @@ func (sender *Sender) Init(senderSettings map[string]string, logger *logging.Log
 }
 
 //SendEvents implements Sender interface Send
-func (sender *Sender) SendEvents(events []notifier.EventData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error {
+func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error {
 	bot, err := tgbotapi.NewBotAPI(sender.APIToken)
 	if err != nil {
 		return fmt.Errorf("Failed to init telegram api: %s", err.Error())
 	}
 
-	var message string
+	var message bytes.Buffer
 
-	if len(events) == 1 {
-		message = events[0].State + " "
-	} else {
-		currentValue := make(map[string]int)
-		for _, event := range events {
-			currentValue[event.State]++
-		}
-		allStates := [...]string{"OK", "WARN", "ERROR", "NODATA", "TEST"}
-		for _, state := range allStates {
-			if currentValue[state] > 0 {
-				message = fmt.Sprintf("%s %s", message, state)
-			}
-		}
-	}
+	state := events.GetSubjectState()
+	tags := trigger.GetTags()
 
-	for _, tag := range trigger.Tags {
-		message += "[" + tag + "]"
-	}
-	message += " " + trigger.Name + "\n\n"
+	message.WriteString(fmt.Sprintf("%s %s %s\n\n", state, trigger.Name, tags))
 
 	for _, event := range events {
 		value := strconv.FormatFloat(event.Value, 'f', -1, 64)
-		message += fmt.Sprintf("%s: %s = %s (%s to %s)\n", time.Unix(event.Timestamp, 0).Format("15:04"), event.Metric, value, event.OldState, event.State)
+		message.WriteString(fmt.Sprintf("%s: %s = %s (%s to %s)\n", time.Unix(event.Timestamp, 0).Format("15:04"), event.Metric, value, event.OldState, event.State))
 	}
 
 	if len(events) > 5 {
-		message += fmt.Sprintf("\n...and %d more events.", len(events)-5)
+		message.WriteString(fmt.Sprintf("\n...and %d more events.", len(events)-5))
 	}
 
 	if throttled {
-		message += "\nPlease, fix your system or tune this trigger to generate less events."
+		message.WriteString("\nPlease, fix your system or tune this trigger to generate less events.")
 	}
 
 	log.Debug("Calling telegram api with chat_id %s and message body %s", contact.Value, message)
 
 	telegramParams := url.Values{}
 	telegramParams.Set("chat_id", contact.Value)
-	telegramParams.Set("text", message)
+	telegramParams.Set("text", message.String())
 	telegramParams.Set("disable_web_page_preview", "true")
 
 	_, err = bot.MakeRequest("sendMessage", telegramParams)

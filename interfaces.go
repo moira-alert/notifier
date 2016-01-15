@@ -13,6 +13,9 @@ type EventData struct {
 	OldState       string  `json:"old_state"`
 }
 
+// EventsData represents slice of EventData
+type EventsData []EventData
+
 // TriggerData represents trigger object
 type TriggerData struct {
 	ID         string   `json:"id"`
@@ -66,6 +69,6 @@ type ScheduledNotification struct {
 
 // Sender interface for implementing specified contact type sender
 type Sender interface {
-	SendEvents(events []EventData, contact ContactData, trigger TriggerData, throttled bool) error
+	SendEvents(events EventsData, contact ContactData, trigger TriggerData, throttled bool) error
 	Init(senderSettings map[string]string, logger *logging.Logger) error
 }

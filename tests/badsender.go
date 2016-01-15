@@ -16,7 +16,7 @@ func (sender *badSender) Init(senderSettings map[string]string, logger *logging.
 }
 
 //SendEvents implements Sender interface to test notifications failure
-func (sender *badSender) SendEvents(events []notifier.EventData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error {
+func (sender *badSender) SendEvents(events notifier.EventsData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error {
 	if contact.Value == "failed@example.com" {
 		return fmt.Errorf("I can't send notifications by design")
 	}
@@ -32,7 +32,7 @@ func (sender *timeoutSender) Init(senderSettings map[string]string, logger *logg
 }
 
 //SendEvents implements Sender interface to test notifications timeout
-func (sender *timeoutSender) SendEvents(events []notifier.EventData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error {
+func (sender *timeoutSender) SendEvents(events notifier.EventsData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error {
 	time.Sleep(20 * time.Millisecond)
 	return nil
 }

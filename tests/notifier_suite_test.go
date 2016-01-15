@@ -458,7 +458,7 @@ var _ = Describe("Notifier", func() {
 				}
 				sender.SetLogger(log)
 				events := make([]notifier.EventData, 0, 10)
-				for event := range generateEvents(10, triggers[0].ID) {
+				for event := range generateTestEvents(10, triggers[0].ID) {
 					events = append(events, *event)
 				}
 				m = sender.MakeMessage(events, contacts[0], triggers[0], true)

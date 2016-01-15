@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"time"
+	"bytes"
 
 	"github.com/op/go-logging"
 
@@ -13,7 +14,7 @@ import (
 )
 
 type sendEventsTwilio interface {
-	SendEvents(events []notifier.EventData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error
+	SendEvents(events notifier.EventsData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error
 }
 
 type twilioSender struct {
@@ -30,55 +31,40 @@ type twilioSenderVoice struct {
 	twilioSender
 }
 
-func (smsSender *twilioSenderSms) SendEvents(events []notifier.EventData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error {
-	var lmessage string
+func (smsSender *twilioSenderSms) SendEvents(events notifier.EventsData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error {
+	var message bytes.Buffer
 
-	if len(events) == 1 {
-		lmessage = events[0].State + " "
-	} else {
-		currentValue := make(map[string]int)
-		for _, event := range events {
-			currentValue[event.State]++
-		}
-		allStates := [...]string{"OK", "WARN", "ERROR", "NODATA", "TEST"}
-		for _, state := range allStates {
-			if currentValue[state] > 0 {
-				lmessage = fmt.Sprintf("%s %s", lmessage, state)
-			}
-		}
-	}
+	state := events.GetSubjectState()
+	tags := trigger.GetTags()
 
-	for _, tag := range trigger.Tags {
-		lmessage += "[" + tag + "]"
-	}
-	lmessage += " " + trigger.Name + "\n\n"
+	message.WriteString(fmt.Sprintf("%s %s %s\n\n", state, trigger.Name, tags))
 
 	for _, event := range events {
 		value := strconv.FormatFloat(event.Value, 'f', -1, 64)
-		lmessage += fmt.Sprintf("%s: %s = %s (%s to %s)\n", time.Unix(event.Timestamp, 0).Format("15:04"), event.Metric, value, event.OldState, event.State)
+		message.WriteString(fmt.Sprintf("%s: %s = %s (%s to %s)\n", time.Unix(event.Timestamp, 0).Format("15:04"), event.Metric, value, event.OldState, event.State))
 	}
 
 	if len(events) > 5 {
-		lmessage += fmt.Sprintf("\n...and %d more events.", len(events)-5)
+		message.WriteString(fmt.Sprintf("\n...and %d more events.", len(events)-5))
 	}
 
 	if throttled {
-		lmessage += "\nPlease, fix your system or tune this trigger to generate less events."
+		message.WriteString("\nPlease, fix your system or tune this trigger to generate less events.")
 	}
 
-	smsSender.log.Debug("Calling twilio sms api to phone %s and message body %s", contact.Value, lmessage)
-	ltwiliomessage, err := twilio.NewMessage(smsSender.client, smsSender.APIFromPhone, contact.Value, twilio.Body(lmessage))
+	smsSender.log.Debug("Calling twilio sms api to phone %s and message body %s", contact.Value, message.String())
+	twilioMessage, err := twilio.NewMessage(smsSender.client, smsSender.APIFromPhone, contact.Value, twilio.Body(message.String()))
 
 	if err != nil {
 		return fmt.Errorf("Failed to send message to contact %s: %s", contact.Value, err.Error())
 	}
 
-	smsSender.log.Debug(fmt.Sprintf("message send to twilio with status: %s", ltwiliomessage.Status))
+	smsSender.log.Debug(fmt.Sprintf("message send to twilio with status: %s", twilioMessage.Status))
 
 	return nil
 }
 
-func (voiceSender *twilioSenderVoice) SendEvents(events []notifier.EventData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error {
+func (voiceSender *twilioSenderVoice) SendEvents(events notifier.EventsData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error {
 	twilio.NewCall(voiceSender.client, voiceSender.APIFromPhone, contact.Value, nil)
 	return nil
 }
@@ -123,6 +109,6 @@ func (sender *Sender) Init(senderSettings map[string]string, logger *logging.Log
 }
 
 //SendEvents implements Sender interface Send
-func (sender *Sender) SendEvents(events []notifier.EventData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error {
+func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error {
 	return sender.sender.SendEvents(events, contact, trigger, throttled)
 }
