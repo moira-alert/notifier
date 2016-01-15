@@ -37,7 +37,7 @@ func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.Co
 	recipient := pushover.NewRecipient(contact.Value)
 
 	subjectState := events.GetSubjectState()
-	title := fmt.Sprintf("%s %s %s", subjectState, trigger.Name, trigger.GetTags())
+	title := fmt.Sprintf("%s %s %s (%d)", subjectState, trigger.Name, trigger.GetTags(), len(events))
 	timestamp := events[len(events) - 1].Timestamp
 
 	var message string

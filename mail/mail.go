@@ -106,7 +106,7 @@ func (sender *Sender) MakeMessage(events notifier.EventsData, contact notifier.C
 	state := events.GetSubjectState()
 	tags := trigger.GetTags()
 	
-	subject := fmt.Sprintf("%s %s %s", state, trigger.Name, tags)
+	subject := fmt.Sprintf("%s %s %s (%d)", state, trigger.Name, tags, len(events))
 
 	templateData := struct {
 		Link      string

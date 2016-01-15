@@ -37,7 +37,7 @@ func (smsSender *twilioSenderSms) SendEvents(events notifier.EventsData, contact
 	state := events.GetSubjectState()
 	tags := trigger.GetTags()
 
-	message.WriteString(fmt.Sprintf("%s %s %s\n\n", state, trigger.Name, tags))
+	message.WriteString(fmt.Sprintf("%s %s %s (%d)\n\n", state, trigger.Name, tags, len(events)))
 
 	for _, event := range events {
 		value := strconv.FormatFloat(event.Value, 'f', -1, 64)
