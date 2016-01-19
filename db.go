@@ -20,7 +20,7 @@ type database interface {
 	GetTagsSubscriptions(tags []string) ([]SubscriptionData, error)
 	GetSubscription(id string) (SubscriptionData, error)
 	GetContact(id string) (ContactData, error)
-	AddNotification(notification *ScheduledNotification, next time.Time) error
+	AddNotification(notification *ScheduledNotification) error
 	GetTriggerThrottlingTimestamps(id string) (time.Time, time.Time)
 	GetTriggerNotificationsCount(id string, from int64) int64
 	SetTriggerThrottlingTimestamp(id string, next time.Time) error
@@ -214,7 +214,7 @@ func (connector *DbConnector) GetTrigger(id string) (TriggerData, error) {
 }
 
 // AddNotification store notification at given timestamp
-func (connector *DbConnector) AddNotification(notification *ScheduledNotification, next time.Time) error {
+func (connector *DbConnector) AddNotification(notification *ScheduledNotification) error {
 
 	notificationString, err := json.Marshal(notification)
 	if err != nil {
@@ -224,7 +224,7 @@ func (connector *DbConnector) AddNotification(notification *ScheduledNotificatio
 	c := connector.Pool.Get()
 	defer c.Close()
 
-	if _, err := c.Do("ZADD", "moira-notifier-notifications", next.Unix(), notificationString); err != nil {
+	if _, err := c.Do("ZADD", "moira-notifier-notifications", notification.Timestamp, notificationString); err != nil {
 		return err
 	}
 

@@ -37,6 +37,16 @@ var contacts = []notifier.ContactData{
 		Type:  "unknown",
 		Value: "no matter",
 	},
+	{
+		ID:    "ContactID-000000000000007",
+		Type:  "slack",
+		Value: "#devops",
+	},
+	{
+		ID:    "ContactID-000000000000008",
+		Type:  "slack",
+		Value: "#devops",
+	},
 }
 
 var triggers = []notifier.TriggerData{
@@ -95,6 +105,14 @@ var triggers = []notifier.TriggerData{
 		WarnValue:  10,
 		ErrorValue: 20,
 		Tags:       []string{"test-tag-multiple-subs"},
+	},
+	{
+		ID:         "triggerID-0000000000008",
+		Name:       "test trigger 8 (duplicated contacts)",
+		Targets:    []string{"test.target.8"},
+		WarnValue:  10,
+		ErrorValue: 20,
+		Tags:       []string{"test-tag-dup-contacts"},
 	},
 }
 
@@ -224,6 +242,20 @@ var subscriptions = []notifier.SubscriptionData{
 		Tags:              []string{"test-tag-multiple-subs"},
 		Contacts:          []string{contacts[0].ID},
 		ThrottlingEnabled: false,
+	},
+	{
+		ID:                "subscriptionID-00000000000011",
+		Enabled:           true,
+		Tags:              []string{"test-tag-dup-contacts"},
+		Contacts:          []string{contacts[6].ID},
+		ThrottlingEnabled: true,
+	},
+	{
+		ID:                "subscriptionID-00000000000012",
+		Enabled:           true,
+		Tags:              []string{"test-tag-dup-contacts"},
+		Contacts:          []string{contacts[7].ID},
+		ThrottlingEnabled: true,
 	},
 }
 

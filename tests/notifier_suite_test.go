@@ -336,7 +336,6 @@ var _ = Describe("Notifier", func() {
 			})
 
 			It("should not enable throttling", func() {
-				assertNotifications(triggers[4].ID, notifier.GetNow(), 0, -1, 11)
 				assertThrottling(triggers[4].ID, time.Unix(0, 0))
 			})
 		})
@@ -394,7 +393,7 @@ var _ = Describe("Notifier", func() {
 						}
 					})
 					It("should plan next notification time immediately", func() {
-						assertNotifications(triggers[0].ID, notifier.GetNow(), 0, -1, 11)
+						assertNotifications(triggers[0].ID, notifier.GetNow(), 0, -1, 10)
 					})
 				})
 				Context("When throttling limit reached", func() {
@@ -439,9 +438,22 @@ var _ = Describe("Notifier", func() {
 					})
 					It("should plan next notification time on allowed interval", func() {
 						assertNotifications(triggers[6].ID, notifier.GetNow(), 0, 10, 11)
-						assertNotifications(triggers[6].ID, time.Unix(1441738800, 0), 11, 20, 11)
+						assertNotifications(triggers[6].ID, time.Unix(1441738800, 0), 11, 21, 11)
 						assertThrottling(triggers[6].ID, notifier.GetNow().Add(30*time.Minute))
 					})
+				})
+			})
+			Context("When subscribtions has the same contact", func() {
+				BeforeEach(func() {
+					for event := range generateEvents(10, triggers[7].ID) {
+						err = notifier.ProcessEvent(*event)
+						testDb.saveEvent(triggers[7].ID, event)
+						Expect(err).ShouldNot(HaveOccurred())
+					}
+				})
+				It("should not duplicate notifications", func() {
+					assertNotifications(triggers[7].ID, notifier.GetNow(), 0, -1, 10)
+					assertThrottling(triggers[7].ID, time.Unix(0, 0))
 				})
 			})
 		})
@@ -503,7 +515,7 @@ func assertThrottling(triggerID string, expected time.Time) {
 func assertNotifications(triggerID string, expected time.Time, from int, to int, count int) {
 	notifications, err := testDb.getNotifications(from, to)
 	Expect(err).ShouldNot(HaveOccurred())
-	Expect(len(notifications), count)
+	Expect(len(notifications)).To(Equal(count))
 	for _, notification := range notifications {
 		Expect(fmt.Sprintf("%s", time.Unix(notification.Timestamp, 0))).To(Equal(fmt.Sprintf("%s", expected)))
 	}

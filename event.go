@@ -44,6 +44,7 @@ func ProcessEvent(event EventData) error {
 		subscriptions = []SubscriptionData{sub}
 	}
 
+	duplications := make(map[string]bool)
 	for _, subscription := range subscriptions {
 		if event.State == "TEST" || (subscription.Enabled && subset(subscription.Tags, tags)) {
 			log.Debug("Processing contact ids %v for subscription %s", subscription.Contacts, subscription.ID)
@@ -54,8 +55,16 @@ func ProcessEvent(event EventData) error {
 					continue
 				}
 				event.SubscriptionID = subscription.ID
-				if err := scheduleNotification(event, trigger, contact, false, 0); err != nil {
-					log.Warning("Failed to schedule notification: %s", err.Error())
+				notification := scheduleNotification(event, trigger, contact, false, 0)
+				key := notification.GetKey()
+				log.Debug(key)
+				if _, exist := duplications[key]; !exist {
+					if err := db.AddNotification(notification); err != nil {
+						log.Errorf("Failed to save scheduled notification: %s", err)
+					}
+					duplications[key] = true
+				}else{
+					log.Warning("Skip duplicated notification for contact %s", notification.Contact)
 				}
 			}
 		} else if !subscription.Enabled {

@@ -84,7 +84,7 @@ func calculateNextDelivery(event *EventData) (time.Time, bool) {
 	return next, alarmFatigue
 }
 
-func scheduleNotification(event EventData, trigger TriggerData, contact ContactData, throttledOld bool, sendfail int) error {
+func scheduleNotification(event EventData, trigger TriggerData, contact ContactData, throttledOld bool, sendfail int) (*ScheduledNotification) {
 	var (
 		next      time.Time
 		throttled bool
@@ -111,16 +111,12 @@ func scheduleNotification(event EventData, trigger TriggerData, contact ContactD
 		Timestamp: next.Unix(),
 	}
 
-	if err := db.AddNotification(notification, next); err != nil {
-		return err
-	}
-
 	log.Debug(
 		"Scheduled notification for contact %s:%s trigger %s at %s (%d)",
 		contact.Type, contact.Value, trigger.Name,
 		next.Format("2006/01/02 15:04:05"), next.Unix())
 
-	return nil
+	return notification
 }
 
 // FetchScheduledNotifications is a cycle that fetches scheduled notifications from database
@@ -207,9 +203,26 @@ func (pkg notificationPackage) resend(reason string) {
 		log.Error("Stop resending. Notification interval is timed out")
 	} else {
 		for _, event := range pkg.Events {
-			if err := scheduleNotification(event, pkg.Trigger, pkg.Contact, pkg.Throttled, pkg.FailCount+1); err != nil {
-				log.Errorf("Can not reschedule notification: %s", err)
+			notification := scheduleNotification(event, pkg.Trigger, pkg.Contact, pkg.Throttled, pkg.FailCount+1)
+			if err := db.AddNotification(notification); err != nil {
+				log.Errorf("Failed to save scheduled notification: %s", err)
 			}
 		}
 	}
+}
+
+// GetKey return notification key to prevent duplication to the same contact
+func(notification *ScheduledNotification) GetKey() string {
+	return fmt.Sprintf("%s:%s:%s:%s:%s:%d:%f:%d:%t:%d",
+		notification.Contact.Type,
+		notification.Contact.Value,
+		notification.Event.TriggerID,
+		notification.Event.Metric,
+		notification.Event.State,
+		notification.Event.Timestamp,
+		notification.Event.Value,
+		notification.SendFail,
+		notification.Throttled,
+		notification.Timestamp,
+	)
 }
