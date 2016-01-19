@@ -29,6 +29,7 @@ type twilioSenderSms struct {
 
 type twilioSenderVoice struct {
 	twilioSender
+	voiceURL string
 }
 
 func (smsSender *twilioSenderSms) SendEvents(events notifier.EventsData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error {
@@ -56,7 +57,7 @@ func (smsSender *twilioSenderSms) SendEvents(events notifier.EventsData, contact
 	twilioMessage, err := twilio.NewMessage(smsSender.client, smsSender.APIFromPhone, contact.Value, twilio.Body(message.String()))
 
 	if err != nil {
-		return fmt.Errorf("Failed to send message to contact %s: %s", contact.Value, err.Error())
+		return fmt.Errorf("Failed to send message to contact %s: %s", contact.Value, err)
 	}
 
 	smsSender.log.Debug(fmt.Sprintf("message send to twilio with status: %s", twilioMessage.Status))
@@ -65,7 +66,14 @@ func (smsSender *twilioSenderSms) SendEvents(events notifier.EventsData, contact
 }
 
 func (voiceSender *twilioSenderVoice) SendEvents(events notifier.EventsData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error {
-	twilio.NewCall(voiceSender.client, voiceSender.APIFromPhone, contact.Value, nil)
+	twilioCall, err := twilio.NewCall(voiceSender.client, voiceSender.APIFromPhone, contact.Value, twilio.Callback(voiceSender.voiceURL))
+
+	if err != nil {
+		return fmt.Errorf("Failed to make call to contact %s: %s", contact.Value, err)
+	}
+
+	voiceSender.log.Debug(fmt.Sprintf("call queued to twilio with status: %s", twilioCall.Status))
+
 	return nil
 }
 
@@ -76,30 +84,36 @@ type Sender struct {
 
 //Init read yaml config
 func (sender *Sender) Init(senderSettings map[string]string, logger *logging.Logger) error {
-	apiSID := senderSettings["api_sid"]
-	if apiSID == "" {
-		return fmt.Errorf("Can not read twilio api_sid from config")
+	apiType := senderSettings["type"]
+
+	apiASID := senderSettings["api_asid"]
+	if apiASID == "" {
+		return fmt.Errorf("Can not read [%s] api_sid param from config", apiType)
 	}
 
-	apiSecret := senderSettings["api_secret"]
-	if apiSecret == "" {
-		return fmt.Errorf("Can not read twilio api_secret from config")
+	apiAuthToken := senderSettings["api_authtoken"]
+	if apiAuthToken == "" {
+		return fmt.Errorf("Can not read [%s] api_authtoken param from config", apiType)
 	}
 
 	apiFromPhone := senderSettings["api_fromphone"]
 	if apiFromPhone == "" {
-		return fmt.Errorf("Can not read twilio from phone")
+		return fmt.Errorf("Can not read [%s] api_fromphone param from config", apiType)
 	}
 
-	apiType := senderSettings["type"]
-	twilioClient := twilio.NewClient(apiSID, apiSecret)
+	twilioClient := twilio.NewClient(apiASID, apiAuthToken)
 
 	switch apiType {
 	case "twilio sms":
 		sender.sender = &twilioSenderSms{twilioSender{twilioClient, apiFromPhone, logger}}
 
 	case "twilio voice":
-		sender.sender = &twilioSenderVoice{twilioSender{twilioClient, apiFromPhone, logger}}
+		voiceURL := senderSettings["voiceurl"]
+		if voiceURL == "" {
+			return fmt.Errorf("Can not read [%s] voiceurl param from config", apiType)
+		}
+
+		sender.sender = &twilioSenderVoice{twilioSender{twilioClient, apiFromPhone, logger}, voiceURL}
 
 	default:
 		return fmt.Errorf("Wrong twilio type: %s", apiType)
