@@ -40,7 +40,7 @@ func calculateNextDelivery(event *EventData) (time.Time, bool) {
 
 	if next.After(now) {
 		alarmFatigue = true
-	}else{
+	} else {
 		next = now
 	}
 
@@ -49,7 +49,7 @@ func calculateNextDelivery(event *EventData) (time.Time, bool) {
 		log.Debug("Failed get subscription by id: %s. %s", event.SubscriptionID, err.Error())
 		return next, alarmFatigue
 	}
-	
+
 	if subscription.ThrottlingEnabled {
 		if next.After(now) {
 			log.Debug("Using existing throttling for trigger %s: %s", event.TriggerID, next)
@@ -59,7 +59,7 @@ func calculateNextDelivery(event *EventData) (time.Time, bool) {
 				if from.Before(beginning) {
 					from = beginning
 				}
-				count := db.GetTriggerNotificationsCount(event.TriggerID, from.Unix())
+				count := db.GetTriggerEventsCount(event.TriggerID, from.Unix())
 				if count >= level.count {
 					next = now.Add(level.delay)
 					log.Debug("Trigger %s switched %d times in last %s, delaying next notification for %s", event.TriggerID, count, level.duration, level.delay)
@@ -73,7 +73,7 @@ func calculateNextDelivery(event *EventData) (time.Time, bool) {
 				}
 			}
 		}
-	}else{
+	} else {
 		next = now
 	}
 
@@ -84,7 +84,7 @@ func calculateNextDelivery(event *EventData) (time.Time, bool) {
 	return next, alarmFatigue
 }
 
-func scheduleNotification(event EventData, trigger TriggerData, contact ContactData, throttledOld bool, sendfail int) (*ScheduledNotification) {
+func scheduleNotification(event EventData, trigger TriggerData, contact ContactData, throttledOld bool, sendfail int) *ScheduledNotification {
 	var (
 		next      time.Time
 		throttled bool
@@ -212,7 +212,7 @@ func (pkg notificationPackage) resend(reason string) {
 }
 
 // GetKey return notification key to prevent duplication to the same contact
-func(notification *ScheduledNotification) GetKey() string {
+func (notification *ScheduledNotification) GetKey() string {
 	return fmt.Sprintf("%s:%s:%s:%s:%s:%d:%f:%d:%t:%d",
 		notification.Contact.Type,
 		notification.Contact.Value,

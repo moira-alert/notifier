@@ -57,7 +57,6 @@ func ProcessEvent(event EventData) error {
 				event.SubscriptionID = subscription.ID
 				notification := scheduleNotification(event, trigger, contact, false, 0)
 				key := notification.GetKey()
-				log.Debug(key)
 				if _, exist := duplications[key]; !exist {
 					if err := db.AddNotification(notification); err != nil {
 						log.Errorf("Failed to save scheduled notification: %s", err)

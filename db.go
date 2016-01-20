@@ -22,7 +22,7 @@ type database interface {
 	GetContact(id string) (ContactData, error)
 	AddNotification(notification *ScheduledNotification) error
 	GetTriggerThrottlingTimestamps(id string) (time.Time, time.Time)
-	GetTriggerNotificationsCount(id string, from int64) int64
+	GetTriggerEventsCount(id string, from int64) int64
 	SetTriggerThrottlingTimestamp(id string, next time.Time) error
 	GetNotifications(to int64) ([]*ScheduledNotification, error)
 }
@@ -92,7 +92,7 @@ func (connector *DbConnector) SetTriggerThrottlingTimestamp(triggerID string, ne
 }
 
 // GetTriggerNotificationsCount retuns planned notifications count from given timestamp
-func (connector *DbConnector) GetTriggerNotificationsCount(triggerID string, from int64) int64 {
+func (connector *DbConnector) GetTriggerEventsCount(triggerID string, from int64) int64 {
 	c := connector.Pool.Get()
 	defer c.Close()
 
