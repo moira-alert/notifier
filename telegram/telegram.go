@@ -1,11 +1,11 @@
 package telegram
 
 import (
+	"bytes"
 	"fmt"
 	"net/url"
 	"strconv"
 	"time"
-	"bytes"
 
 	"github.com/moira-alert/notifier"
 
@@ -47,21 +47,22 @@ func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.Co
 
 	message.WriteString(fmt.Sprintf("%s %s %s (%d)\n\n", state, trigger.Name, tags, len(events)))
 
-
 	messageLimitReached := false
+	lineCount := 0
 
 	for _, event := range events {
 		value := strconv.FormatFloat(event.Value, 'f', -1, 64)
 		line := fmt.Sprintf("%s: %s = %s (%s to %s)\n", time.Unix(event.Timestamp, 0).Format("15:04"), event.Metric, value, event.OldState, event.State)
-		if message.Len() + len(line) > telegramMessageLimit - 200 {
+		if message.Len()+len(line) > telegramMessageLimit-200 {
 			messageLimitReached = true
 			break
 		}
 		message.WriteString(line)
+		lineCount++
 	}
 
 	if messageLimitReached {
-		message.WriteString(fmt.Sprintf("\n...and %d more events.", len(events)-5))
+		message.WriteString(fmt.Sprintf("\n...and %d more events.", len(events)-lineCount))
 	}
 
 	if throttled {
