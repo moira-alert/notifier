@@ -14,6 +14,7 @@ import (
 )
 
 var log *logging.Logger
+var telegramMessageLimit = 4096
 
 // Sender implements moira sender interface via telegram
 type Sender struct {
@@ -46,12 +47,20 @@ func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.Co
 
 	message.WriteString(fmt.Sprintf("%s %s %s (%d)\n\n", state, trigger.Name, tags, len(events)))
 
+
+	messageLimitReached := false
+
 	for _, event := range events {
 		value := strconv.FormatFloat(event.Value, 'f', -1, 64)
-		message.WriteString(fmt.Sprintf("%s: %s = %s (%s to %s)\n", time.Unix(event.Timestamp, 0).Format("15:04"), event.Metric, value, event.OldState, event.State))
+		line := fmt.Sprintf("%s: %s = %s (%s to %s)\n", time.Unix(event.Timestamp, 0).Format("15:04"), event.Metric, value, event.OldState, event.State)
+		if message.Len() + len(line) > telegramMessageLimit - 200 {
+			messageLimitReached = true
+			break
+		}
+		message.WriteString(line)
 	}
 
-	if len(events) > 5 {
+	if messageLimitReached {
 		message.WriteString(fmt.Sprintf("\n...and %d more events.", len(events)-5))
 	}
 
