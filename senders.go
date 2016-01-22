@@ -2,6 +2,7 @@ package notifier
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/rcrowley/go-metrics"
 )
@@ -41,10 +42,14 @@ func RegisterSender(senderSettings map[string]string, sender Sender) error {
 	}
 	ch := make(chan notificationPackage)
 	sending[senderIdent] = ch
-	sendersOkMetrics[senderIdent] = metrics.NewRegisteredMeter(fmt.Sprintf("%s.sends_ok", senderIdent), metrics.DefaultRegistry)
-	sendersFailedMetrics[senderIdent] = metrics.NewRegisteredMeter(fmt.Sprintf("%s.sends_failed", senderIdent), metrics.DefaultRegistry)
+	sendersOkMetrics[senderIdent] = metrics.NewRegisteredMeter(fmt.Sprintf("%s.sends_ok", getGraphiteSenderIdent(senderIdent)), metrics.DefaultRegistry)
+	sendersFailedMetrics[senderIdent] = metrics.NewRegisteredMeter(fmt.Sprintf("%s.sends_failed", getGraphiteSenderIdent(senderIdent)), metrics.DefaultRegistry)
 	wg.Add(1)
 	go run(sender, ch)
 	log.Debug("Sender %s registered", senderIdent)
 	return nil
+}
+
+func getGraphiteSenderIdent(ident string) string{
+	return strings.Replace(ident, " ", "_", -1)
 }
