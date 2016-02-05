@@ -13,8 +13,17 @@ import (
 	"github.com/op/go-logging"
 )
 
-var log *logging.Logger
-var telegramMessageLimit = 4096
+var (
+	log                  *logging.Logger
+	telegramMessageLimit = 4096
+	emojiStates          = map[string]string{
+		"OK":     "\xe2\x9c\x85",
+		"WARN":   "\xe2\x9a\xa0",
+		"ERROR":  "\xe2\xad\x95",
+		"NODATA": "\xf0\x9f\x92\xa3",
+		"TEST":   "\xf0\x9f\x98\x8a",
+	}
+)
 
 // Sender implements moira sender interface via telegram
 type Sender struct {
@@ -45,7 +54,8 @@ func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.Co
 	state := events.GetSubjectState()
 	tags := trigger.GetTags()
 
-	message.WriteString(fmt.Sprintf("%s %s %s (%d)\n\n", state, trigger.Name, tags, len(events)))
+	emoji := emojiStates[state]
+	message.WriteString(fmt.Sprintf("%s%s %s %s (%d)\n\n", string(emoji), state, trigger.Name, tags, len(events)))
 
 	messageLimitReached := false
 	lineCount := 0
