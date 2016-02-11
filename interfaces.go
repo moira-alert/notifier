@@ -21,7 +21,6 @@ type TriggerData struct {
 	ID         string   `json:"id"`
 	Name       string   `json:"name"`
 	Targets    []string `json:"targets"`
-	Patterns   []string `json:"patterns"`
 	WarnValue  float64  `json:"warn_value"`
 	ErrorValue float64  `json:"error_value"`
 	Tags       []string `json:"__notifier_trigger_tags"`
