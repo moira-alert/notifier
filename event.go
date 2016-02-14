@@ -16,7 +16,7 @@ func ProcessEvent(event EventData) error {
 	)
 
 	if event.State != "TEST" {
-		log.Debug("Processing trigger id %s for metric %s == %f, %s -> %s", event.TriggerID, event.Metric, event.Value, event.OldState, event.State)
+		log.Debugf("Processing trigger id %s for metric %s == %f, %s -> %s", event.TriggerID, event.Metric, event.Value, event.OldState, event.State)
 
 		trigger, err = db.GetTrigger(event.TriggerID)
 		if err != nil {
@@ -30,13 +30,13 @@ func ProcessEvent(event EventData) error {
 		trigger.Tags = tags
 		tags = append(tags, event.State, event.OldState)
 
-		log.Debug("Getting subscriptions for tags %v", tags)
+		log.Debugf("Getting subscriptions for tags %v", tags)
 		subscriptions, err = db.GetTagsSubscriptions(tags)
 		if err != nil {
 			return err
 		}
 	} else {
-		log.Debug("Getting subscription id %s for test message", event.SubscriptionID)
+		log.Debugf("Getting subscription id %s for test message", event.SubscriptionID)
 		sub, err := db.GetSubscription(event.SubscriptionID)
 		if err != nil {
 			return err
@@ -47,7 +47,7 @@ func ProcessEvent(event EventData) error {
 	duplications := make(map[string]bool)
 	for _, subscription := range subscriptions {
 		if event.State == "TEST" || (subscription.Enabled && subset(subscription.Tags, tags)) {
-			log.Debug("Processing contact ids %v for subscription %s", subscription.Contacts, subscription.ID)
+			log.Debugf("Processing contact ids %v for subscription %s", subscription.Contacts, subscription.ID)
 			for _, contactID := range subscription.Contacts {
 				contact, err := db.GetContact(contactID)
 				if err != nil {
@@ -67,9 +67,9 @@ func ProcessEvent(event EventData) error {
 				}
 			}
 		} else if !subscription.Enabled {
-			log.Debug("Subscription %s is disabled", subscription.ID)
+			log.Debugf("Subscription %s is disabled", subscription.ID)
 		} else {
-			log.Debug("Subscription %s has extra tags", subscription.ID)
+			log.Debugf("Subscription %s has extra tags", subscription.ID)
 		}
 	}
 	return nil

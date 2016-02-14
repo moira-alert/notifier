@@ -46,13 +46,13 @@ func calculateNextDelivery(event *EventData) (time.Time, bool) {
 
 	subscription, err := db.GetSubscription(event.SubscriptionID)
 	if err != nil {
-		log.Debug("Failed get subscription by id: %s. %s", event.SubscriptionID, err.Error())
+		log.Debugf("Failed get subscription by id: %s. %s", event.SubscriptionID, err.Error())
 		return next, alarmFatigue
 	}
 
 	if subscription.ThrottlingEnabled {
 		if next.After(now) {
-			log.Debug("Using existing throttling for trigger %s: %s", event.TriggerID, next)
+			log.Debugf("Using existing throttling for trigger %s: %s", event.TriggerID, next)
 		} else {
 			for _, level := range throttlingLevels {
 				from := now.Add(-level.duration)
@@ -62,7 +62,7 @@ func calculateNextDelivery(event *EventData) (time.Time, bool) {
 				count := db.GetTriggerEventsCount(event.TriggerID, from.Unix())
 				if count >= level.count {
 					next = now.Add(level.delay)
-					log.Debug("Trigger %s switched %d times in last %s, delaying next notification for %s", event.TriggerID, count, level.duration, level.delay)
+					log.Debugf("Trigger %s switched %d times in last %s, delaying next notification for %s", event.TriggerID, count, level.duration, level.delay)
 					if err := db.SetTriggerThrottlingTimestamp(event.TriggerID, next); err != nil {
 						log.Errorf("Failed to set trigger throttling timestamp: %s", err)
 					}
@@ -111,7 +111,7 @@ func scheduleNotification(event EventData, trigger TriggerData, contact ContactD
 		Timestamp: next.Unix(),
 	}
 
-	log.Debug(
+	log.Debugf(
 		"Scheduled notification for contact %s:%s trigger %s at %s (%d)",
 		contact.Type, contact.Value, trigger.Name,
 		next.Format("2006/01/02 15:04:05"), next.Unix())
@@ -179,7 +179,7 @@ func ProcessScheduledNotifications() error {
 		sendingWG.Add(1)
 		go func(pkg *notificationPackage) {
 			defer sendingWG.Done()
-			log.Debug("Start sending %s", pkg)
+			log.Debugf("Start sending %s", pkg)
 			select {
 			case ch <- *pkg:
 				break

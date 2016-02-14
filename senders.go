@@ -46,7 +46,7 @@ func RegisterSender(senderSettings map[string]string, sender Sender) error {
 	sendersFailedMetrics[senderIdent] = metrics.NewRegisteredMeter(fmt.Sprintf("%s.sends_failed", getGraphiteSenderIdent(senderIdent)), metrics.DefaultRegistry)
 	wg.Add(1)
 	go run(sender, ch)
-	log.Debug("Sender %s registered", senderIdent)
+	log.Debugf("Sender %s registered", senderIdent)
 	return nil
 }
 

@@ -76,7 +76,7 @@ var _ = Describe("Notifier", func() {
 		logging.SetBackend(logBackend)
 		logging.SetLevel(logging.DEBUG, "notifier")
 		now := notifier.GetNow()
-		log.Debug("Using now time: %s, %s", now, now.Weekday())
+		log.Debugf("Using now time: %s, %s", now, now.Weekday())
 	})
 
 	AfterEach(func() {

@@ -53,14 +53,14 @@ func (smsSender *twilioSenderSms) SendEvents(events notifier.EventsData, contact
 		message.WriteString("\nPlease, fix your system or tune this trigger to generate less events.")
 	}
 
-	smsSender.log.Debug("Calling twilio sms api to phone %s and message body %s", contact.Value, message.String())
+	smsSender.log.Debugf("Calling twilio sms api to phone %s and message body %s", contact.Value, message.String())
 	twilioMessage, err := twilio.NewMessage(smsSender.client, smsSender.APIFromPhone, contact.Value, twilio.Body(message.String()))
 
 	if err != nil {
 		return fmt.Errorf("Failed to send message to contact %s: %s", contact.Value, err)
 	}
 
-	smsSender.log.Debug(fmt.Sprintf("message send to twilio with status: %s", twilioMessage.Status))
+	smsSender.log.Debugf(fmt.Sprintf("message send to twilio with status: %s", twilioMessage.Status))
 
 	return nil
 }
@@ -72,7 +72,7 @@ func (voiceSender *twilioSenderVoice) SendEvents(events notifier.EventsData, con
 		return fmt.Errorf("Failed to make call to contact %s: %s", contact.Value, err)
 	}
 
-	voiceSender.log.Debug(fmt.Sprintf("call queued to twilio with status: %s", twilioCall.Status))
+	voiceSender.log.Debugf("Call queued to twilio with status: %s", twilioCall.Status)
 
 	return nil
 }

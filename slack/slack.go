@@ -55,7 +55,7 @@ func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.Co
 		message.WriteString("\nPlease, *fix your system or tune this trigger* to generate less events.")
 	}
 
-	log.Debug("Calling slack with message body %s", message)
+	log.Debugf("Calling slack with message body %s", message)
 
 	params := slack.PostMessageParameters{
 		Username: "Moira",
