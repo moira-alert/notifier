@@ -106,7 +106,7 @@ func (connector *DbConnector) GetTagsSubscriptions(tags []string) ([]Subscriptio
 	c := connector.Pool.Get()
 	defer c.Close()
 
-	log.Debug("Getting tags %v subscriptions", tags)
+	log.Debugf("Getting tags %v subscriptions", tags)
 
 	tagKeys := make([]interface{}, 0, len(tags))
 	for _, tag := range tags {
@@ -121,7 +121,7 @@ func (connector *DbConnector) GetTagsSubscriptions(tags []string) ([]Subscriptio
 		return nil, fmt.Errorf("Failed to retrieve subscriptions for tags %v: %s", tags, err.Error())
 	}
 	if len(subscriptions) == 0 {
-		log.Debug("No subscriptions found for tag set %v", tags)
+		log.Debugf("No subscriptions found for tag set %v", tags)
 		return make([]SubscriptionData, 0, 0), nil
 	}
 
