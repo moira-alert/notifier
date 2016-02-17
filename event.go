@@ -62,8 +62,8 @@ func ProcessEvent(event EventData) error {
 						log.Errorf("Failed to save scheduled notification: %s", err)
 					}
 					duplications[key] = true
-				}else{
-					log.Warning("Skip duplicated notification for contact %s", notification.Contact)
+				} else {
+					log.Debugf("Skip duplicated notification for contact %s", notification.Contact)
 				}
 			}
 		} else if !subscription.Enabled {
@@ -106,7 +106,7 @@ func FetchEvents(shutdown chan bool, wg *sync.WaitGroup) {
 }
 
 // GetSubjectState returns the most critial state of events
-func (events EventsData) GetSubjectState() string{
+func (events EventsData) GetSubjectState() string {
 	result := ""
 	states := make(map[string]bool)
 	for _, event := range events {

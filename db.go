@@ -40,7 +40,7 @@ func ConvertNotifications(redisResponse interface{}) ([]*ScheduledNotification, 
 	for _, notificationString := range notificationStrings {
 		notification := &ScheduledNotification{}
 		if err := json.Unmarshal([]byte(notificationString), notification); err != nil {
-			log.Warning("Failed to parse scheduled json notification %s: %s", notificationString, err.Error())
+			log.Warningf("Failed to parse scheduled json notification %s: %s", notificationString, err.Error())
 			continue
 		}
 		notifications = append(notifications, notification)
@@ -240,7 +240,7 @@ func (connector *DbConnector) FetchEvent() (*EventData, error) {
 
 	rawRes, err := c.Do("BRPOP", "moira-trigger-events", 1)
 	if err != nil {
-		log.Warning("Failed to wait for event: %s", err.Error())
+		log.Warningf("Failed to wait for event: %s", err.Error())
 		time.Sleep(time.Second * 5)
 		return nil, nil
 	}
@@ -251,7 +251,7 @@ func (connector *DbConnector) FetchEvent() (*EventData, error) {
 		)
 		res, _ := redis.Values(rawRes, nil)
 		if _, err = redis.Scan(res, &key, &eventBytes); err != nil {
-			log.Warning("Failed to parse event: %s", err.Error())
+			log.Warningf("Failed to parse event: %s", err.Error())
 			return nil, err
 		}
 		if err := json.Unmarshal(eventBytes, &event); err != nil {

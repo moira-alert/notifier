@@ -27,6 +27,9 @@ var (
 	log            *logging.Logger
 	config         notifier.Settings
 	configFileName = flag.String("config", "/etc/moira/config.yml", "path to config file")
+	printVersion   = flag.Bool("version", false, "Print current version and exit")
+
+	Version = "latest"
 )
 
 type yamlSettings struct {
@@ -50,6 +53,10 @@ func run(worker worker, shutdown chan bool, wg *sync.WaitGroup) {
 
 func main() {
 	flag.Parse()
+	if *printVersion {
+		fmt.Printf("Moira notifier version: %s\n", Version)
+		os.Exit(0)
+	}
 	if err := readSettings(*configFileName); err != nil {
 		fmt.Printf("Can not read settings: %s \n", err.Error())
 		os.Exit(1)
@@ -69,13 +76,13 @@ func main() {
 	var wg sync.WaitGroup
 	run(notifier.FetchEvents, shutdown, &wg)
 	run(notifier.FetchScheduledNotifications, shutdown, &wg)
-	log.Info("Moira Notifier Started")
+	log.Infof("Moira Notifier Started. Version: %s", Version)
 	ch := make(chan os.Signal)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
 	log.Info(fmt.Sprint(<-ch))
 	close(shutdown)
 	wg.Wait()
-	log.Info("Moira Notifier Stopped")
+	log.Infof("Moira Notifier Stopped. Version: %s", Version)
 }
 
 func configureLog() error {

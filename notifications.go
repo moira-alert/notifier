@@ -134,7 +134,7 @@ func FetchScheduledNotifications(shutdown chan bool, wg *sync.WaitGroup) {
 		default:
 			{
 				if err := ProcessScheduledNotifications(); err != nil {
-					log.Warning("Failed to fetch scheduled notifications: %s", err.Error())
+					log.Warningf("Failed to fetch scheduled notifications: %s", err.Error())
 				}
 				time.Sleep(time.Second)
 			}
@@ -198,7 +198,7 @@ func (pkg notificationPackage) resend(reason string) {
 	if metric, found := sendersFailedMetrics[pkg.Contact.Type]; found {
 		metric.Mark(1)
 	}
-	log.Warning("Can't send message after %d try: %s. Retry again after 1 min", pkg.FailCount, reason)
+	log.Warningf("Can't send message after %d try: %s. Retry again after 1 min", pkg.FailCount, reason)
 	if time.Duration(pkg.FailCount)*time.Minute > resendingTimeout {
 		log.Error("Stop resending. Notification interval is timed out")
 	} else {

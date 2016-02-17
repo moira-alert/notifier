@@ -50,6 +50,6 @@ func RegisterSender(senderSettings map[string]string, sender Sender) error {
 	return nil
 }
 
-func getGraphiteSenderIdent(ident string) string{
+func getGraphiteSenderIdent(ident string) string {
 	return strings.Replace(ident, " ", "_", -1)
 }
