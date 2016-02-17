@@ -17,6 +17,7 @@ github.com/stretchr/objx 1a9d0bb9f541897e62256577b352fdbc1fb4fd94
 github.com/stretchr/testify 9f9027faeb0dad515336ed2f28317f9f8f527ab4
 github.com/technoweenie/multipartstreamer a90a01d73ae432e2611d178c18367fbaa13e0154
 golang.org/x/net b6d7b1396ec874c3b00f6c84cd4301a17c56c8ed
+gopkg.in/alexcesaro/quotedprintable.v3 2caba252f4dc53eaf6b553000885530023f54623
 gopkg.in/gomail.v2 fbb71ddc63acd07dd0ed49ababdf02c551e2539a
 gopkg.in/yaml.v1 9f9df34309c04878acc86042b16630b0f696e1de
 menteslibres.net/gosexy/dig 8c84038322702f6214cc1403a74c33c86ad65f9a

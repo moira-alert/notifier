@@ -11,6 +11,7 @@ import (
 
 	"github.com/gosexy/to"
 	"github.com/op/go-logging"
+	_ "gopkg.in/alexcesaro/quotedprintable.v3"
 	gomail "gopkg.in/gomail.v2"
 )
 
