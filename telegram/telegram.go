@@ -9,7 +9,7 @@ import (
 
 	"github.com/moira-alert/notifier"
 
-	tgbotapi "github.com/Syfaro/telegram-bot-api"
+	tgbotapi "gopkg.in/telegram-bot-api.v1"
 	"github.com/op/go-logging"
 )
 
