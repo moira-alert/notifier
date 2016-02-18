@@ -87,7 +87,7 @@ func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.Co
 	telegramParams.Set("disable_web_page_preview", "true")
 
 	if res, err := bot.MakeRequest("sendMessage", telegramParams); err != nil {
-		return fmt.Errorf("Failed to send message to telegram contact %s: %s. Response: %v", contact.Value, err, res)
+		return fmt.Errorf("Failed to send message to telegram contact %s: %s. Response: %s", contact.Value, err, res.Description)
 	}
 	return nil
 
