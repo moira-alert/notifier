@@ -91,7 +91,7 @@ func (connector *DbConnector) SetTriggerThrottlingTimestamp(triggerID string, ne
 	return nil
 }
 
-// GetTriggerNotificationsCount retuns planned notifications count from given timestamp
+// GetTriggerEventsCount retuns planned notifications count from given timestamp
 func (connector *DbConnector) GetTriggerEventsCount(triggerID string, from int64) int64 {
 	c := connector.Pool.Get()
 	defer c.Close()
