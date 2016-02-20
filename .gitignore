@@ -1,3 +1,4 @@
 .DS_Store
 notifier/notifier
 .coverprofile
+build/
