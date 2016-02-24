@@ -79,7 +79,7 @@ func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.Co
 		message.WriteString("\nPlease, fix your system or tune this trigger to generate less events.")
 	}
 
-	log.Debugf("Calling telegram api with chat_id %s and message body %s", contact.Value, message)
+	log.Debugf("Calling telegram api with chat_id %s and message body %s", contact.Value, message.String())
 
 	telegramParams := url.Values{}
 	telegramParams.Set("chat_id", contact.Value)
