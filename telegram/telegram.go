@@ -72,8 +72,10 @@ func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.Co
 	}
 
 	if messageLimitReached {
-		message.WriteString(fmt.Sprintf("\n...and %d more events.", len(events)-lineCount))
+		message.WriteString(fmt.Sprintf("\n...and %d more events.\n", len(events)-lineCount))
 	}
+
+	message.WriteString(fmt.Sprintf("\n%s/#/events/%s\n", sender.FrontURI, events[0].TriggerID))
 
 	if throttled {
 		message.WriteString("\nPlease, fix your system or tune this trigger to generate less events.")
