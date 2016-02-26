@@ -42,7 +42,7 @@ func (smsSender *twilioSenderSms) SendEvents(events notifier.EventsData, contact
 
 	for _, event := range events {
 		value := strconv.FormatFloat(event.Value, 'f', -1, 64)
-		message.WriteString(fmt.Sprintf("%s: %s = %s (%s to %s)\n", time.Unix(event.Timestamp, 0).Format("15:04"), event.Metric, value, event.OldState, event.State))
+		message.WriteString(fmt.Sprintf("%s: %s = %s (%s to %s) %s\n", time.Unix(event.Timestamp, 0).Format("15:04"), event.Metric, value, event.OldState, event.State, event.Message))
 	}
 
 	if len(events) > 5 {

@@ -11,6 +11,7 @@ type EventData struct {
 	TriggerID      string  `json:"trigger_id"`
 	SubscriptionID string  `json:"sub_id"`
 	OldState       string  `json:"old_state"`
+	Message        string  `json:"msg"`
 }
 
 // EventsData represents slice of EventData

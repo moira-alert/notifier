@@ -46,7 +46,7 @@ func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.Co
 			icon = fmt.Sprintf("%s/public/fav72_error.png", sender.FrontURI)
 		}
 		value := strconv.FormatFloat(event.Value, 'f', -1, 64)
-		message.WriteString(fmt.Sprintf("\n%s: %s = %s (%s to %s)", time.Unix(event.Timestamp, 0).Format("15:04"), event.Metric, value, event.OldState, event.State))
+		message.WriteString(fmt.Sprintf("\n%s: %s = %s (%s to %s) %s", time.Unix(event.Timestamp, 0).Format("15:04"), event.Metric, value, event.OldState, event.State, event.Message))
 	}
 
 	message.WriteString("```")

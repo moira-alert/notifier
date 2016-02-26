@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"time"
+	"bytes"
 
 	"github.com/moira-alert/notifier"
 
@@ -40,7 +41,7 @@ func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.Co
 	title := fmt.Sprintf("%s %s %s (%d)", subjectState, trigger.Name, trigger.GetTags(), len(events))
 	timestamp := events[len(events) - 1].Timestamp
 
-	var message string
+	var message bytes.Buffer
 	priority := pushover.PriorityNormal
 	for i, event := range events {
 		if i > 4 {
@@ -53,21 +54,21 @@ func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.Co
 			priority = pushover.PriorityHigh
 		}
 		value := strconv.FormatFloat(event.Value, 'f', -1, 64)
-		message += fmt.Sprintf("%s: %s = %s (%s to %s)\n", time.Unix(event.Timestamp, 0).Format("15:04"), event.Metric, value, event.OldState, event.State)
+		message.WriteString(fmt.Sprintf("%s: %s = %s (%s to %s) %s\n", time.Unix(event.Timestamp, 0).Format("15:04"), event.Metric, value, event.OldState, event.State, event.Message))
 	}
 
 	if len(events) > 5 {
-		message += fmt.Sprintf("\n...and %d more events.", len(events)-5)
+		message.WriteString(fmt.Sprintf("\n...and %d more events.", len(events)-5))
 	}
 
 	if throttled {
-		message += "\nPlease, fix your system or tune this trigger to generate less events."
+		message.WriteString("\nPlease, fix your system or tune this trigger to generate less events.")
 	}
 
 	log.Debugf("Calling pushover with message title %s, body %s", title, message)
 
 	pushoverMessage := &pushover.Message{
-		Message:   message,
+		Message:   message.String(),
 		Title:     title,
 		Priority:  priority,
 		Retry:     5 * time.Minute,

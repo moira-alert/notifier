@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"github.com/moira-alert/notifier"
 	"strconv"
 	"time"
 
+	"github.com/moira-alert/notifier"
+
 	"github.com/gosexy/to"
 	"github.com/op/go-logging"
-	_ "gopkg.in/alexcesaro/quotedprintable.v3"
+	
 	gomail "gopkg.in/gomail.v2"
 )
 
@@ -40,6 +41,7 @@ var tpl = template.Must(template.New("mail").Parse(`
 					<th>Error</th>
 					<th>From</th>
 					<th>To</th>
+					<th>Note</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -52,6 +54,7 @@ var tpl = template.Must(template.New("mail").Parse(`
 					<td>{{ .ErrorValue }}</td>
 					<td>{{ .Oldstate }}</td>
 					<td>{{ .State }}</td>
+					<td>{{ .Message }}</td>
 				</tr>
 				{{end}}
 			</tbody>
@@ -74,6 +77,7 @@ type templateRow struct {
 	Value      string
 	WarnValue  string
 	ErrorValue string
+	Message    string
 }
 
 // Sender implements moira sender interface via pushover
@@ -103,10 +107,10 @@ func (sender *Sender) SetLogger(logger *logging.Logger) {
 
 // MakeMessage prepare message to send
 func (sender *Sender) MakeMessage(events notifier.EventsData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) *gomail.Message {
-	
+
 	state := events.GetSubjectState()
 	tags := trigger.GetTags()
-	
+
 	subject := fmt.Sprintf("%s %s %s (%d)", state, trigger.Name, tags, len(events))
 
 	templateData := struct {
@@ -128,6 +132,7 @@ func (sender *Sender) MakeMessage(events notifier.EventsData, contact notifier.C
 			Value:      strconv.FormatFloat(event.Value, 'f', -1, 64),
 			WarnValue:  strconv.FormatFloat(trigger.WarnValue, 'f', -1, 64),
 			ErrorValue: strconv.FormatFloat(trigger.ErrorValue, 'f', -1, 64),
+			Message:    event.Message,
 		})
 	}
 

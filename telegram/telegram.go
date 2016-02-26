@@ -62,7 +62,7 @@ func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.Co
 
 	for _, event := range events {
 		value := strconv.FormatFloat(event.Value, 'f', -1, 64)
-		line := fmt.Sprintf("%s: %s = %s (%s to %s)\n", time.Unix(event.Timestamp, 0).Format("15:04"), event.Metric, value, event.OldState, event.State)
+		line := fmt.Sprintf("%s: %s = %s (%s to %s) %s\n", time.Unix(event.Timestamp, 0).Format("15:04"), event.Metric, value, event.OldState, event.State, event.Message)
 		if message.Len()+len(line) > telegramMessageLimit-400 {
 			messageLimitReached = true
 			break
