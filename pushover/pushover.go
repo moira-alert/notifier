@@ -1,10 +1,10 @@
 package pushover
 
 import (
+	"bytes"
 	"fmt"
 	"strconv"
 	"time"
-	"bytes"
 
 	"github.com/moira-alert/notifier"
 
@@ -22,7 +22,6 @@ type Sender struct {
 
 //Init read yaml config
 func (sender *Sender) Init(senderSettings map[string]string, logger *logging.Logger) error {
-	
 	sender.APIToken = senderSettings["api_token"]
 	if sender.APIToken == "" {
 		return fmt.Errorf("Can not read pushover api_token from config")
@@ -39,7 +38,7 @@ func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.Co
 
 	subjectState := events.GetSubjectState()
 	title := fmt.Sprintf("%s %s %s (%d)", subjectState, trigger.Name, trigger.GetTags(), len(events))
-	timestamp := events[len(events) - 1].Timestamp
+	timestamp := events[len(events)-1].Timestamp
 
 	var message bytes.Buffer
 	priority := pushover.PriorityNormal
@@ -54,7 +53,12 @@ func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.Co
 			priority = pushover.PriorityHigh
 		}
 		value := strconv.FormatFloat(event.Value, 'f', -1, 64)
-		message.WriteString(fmt.Sprintf("%s: %s = %s (%s to %s) %s\n", time.Unix(event.Timestamp, 0).Format("15:04"), event.Metric, value, event.OldState, event.State, event.Message))
+		message.WriteString(fmt.Sprintf("%s: %s = %s (%s to %s)", time.Unix(event.Timestamp, 0).Format("15:04"), event.Metric, value, event.OldState, event.State))
+		if len(event.Message) > 0 {
+			message.WriteString(fmt.Sprintf(". %s\n", event.Message))
+		} else {
+			message.WriteString("\n")
+		}
 	}
 
 	if len(events) > 5 {

@@ -9,8 +9,8 @@ import (
 
 	"github.com/moira-alert/notifier"
 
-	tgbotapi "gopkg.in/telegram-bot-api.v1"
 	"github.com/op/go-logging"
+	tgbotapi "gopkg.in/telegram-bot-api.v1"
 )
 
 var (
@@ -55,14 +55,17 @@ func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.Co
 	tags := trigger.GetTags()
 
 	emoji := emojiStates[state]
-	message.WriteString(fmt.Sprintf("%s%s %s %s (%d)\n\n", string(emoji), state, trigger.Name, tags, len(events)))
+	message.WriteString(fmt.Sprintf("%s%s %s %s (%d)\n", string(emoji), state, trigger.Name, tags, len(events)))
 
 	messageLimitReached := false
 	lineCount := 0
 
 	for _, event := range events {
 		value := strconv.FormatFloat(event.Value, 'f', -1, 64)
-		line := fmt.Sprintf("%s: %s = %s (%s to %s) %s\n", time.Unix(event.Timestamp, 0).Format("15:04"), event.Metric, value, event.OldState, event.State, event.Message)
+		line := fmt.Sprintf("\n%s: %s = %s (%s to %s)", time.Unix(event.Timestamp, 0).Format("15:04"), event.Metric, value, event.OldState, event.State)
+		if len(event.Message) > 0 {
+			line += fmt.Sprintf(". %s", event.Message)
+		}
 		if message.Len()+len(line) > telegramMessageLimit-400 {
 			messageLimitReached = true
 			break
@@ -72,10 +75,10 @@ func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.Co
 	}
 
 	if messageLimitReached {
-		message.WriteString(fmt.Sprintf("\n...and %d more events.\n", len(events)-lineCount))
+		message.WriteString(fmt.Sprintf("\n\n...and %d more events.", len(events)-lineCount))
 	}
 
-	message.WriteString(fmt.Sprintf("\n%s/#/events/%s\n", sender.FrontURI, events[0].TriggerID))
+	message.WriteString(fmt.Sprintf("\n\n%s/#/events/%s\n", sender.FrontURI, events[0].TriggerID))
 
 	if throttled {
 		message.WriteString("\nPlease, fix your system or tune this trigger to generate less events.")

@@ -1,10 +1,10 @@
 package twilio
 
 import (
+	"bytes"
 	"fmt"
 	"strconv"
 	"time"
-	"bytes"
 
 	"github.com/op/go-logging"
 
@@ -38,19 +38,22 @@ func (smsSender *twilioSenderSms) SendEvents(events notifier.EventsData, contact
 	state := events.GetSubjectState()
 	tags := trigger.GetTags()
 
-	message.WriteString(fmt.Sprintf("%s %s %s (%d)\n\n", state, trigger.Name, tags, len(events)))
+	message.WriteString(fmt.Sprintf("%s %s %s (%d)\n", state, trigger.Name, tags, len(events)))
 
 	for _, event := range events {
 		value := strconv.FormatFloat(event.Value, 'f', -1, 64)
-		message.WriteString(fmt.Sprintf("%s: %s = %s (%s to %s) %s\n", time.Unix(event.Timestamp, 0).Format("15:04"), event.Metric, value, event.OldState, event.State, event.Message))
+		message.WriteString(fmt.Sprintf("\n%s: %s = %s (%s to %s)", time.Unix(event.Timestamp, 0).Format("15:04"), event.Metric, value, event.OldState, event.State))
+		if len(event.Message) > 0 {
+			message.WriteString(fmt.Sprintf(". %s", event.Message))
+		}
 	}
 
 	if len(events) > 5 {
-		message.WriteString(fmt.Sprintf("\n...and %d more events.", len(events)-5))
+		message.WriteString(fmt.Sprintf("\n\n...and %d more events.", len(events)-5))
 	}
 
 	if throttled {
-		message.WriteString("\nPlease, fix your system or tune this trigger to generate less events.")
+		message.WriteString("\n\nPlease, fix your system or tune this trigger to generate less events.")
 	}
 
 	smsSender.log.Debugf("Calling twilio sms api to phone %s and message body %s", contact.Value, message.String())
