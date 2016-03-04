@@ -1,4 +1,5 @@
-VERSION := $(shell sh -c 'git describe --always --tags')
+VERSION := $(shell git describe --always --tags --abbrev=0 | tail -c +2)
+RELEASE := $(shell git describe --always --tags | awk -F- '{ if ($$2) dot="."} END { printf "1%s%s%s%s\n",dot,$$2,dot,$$3}')
 VENDOR := "SKB Kontur"
 URL := "https://github.com/moira-alert"
 LICENSE := "GPLv3"
@@ -6,7 +7,7 @@ LICENSE := "GPLv3"
 default: test build
 
 build:
-	go build -ldflags "-X main.Version=$(VERSION)" -o build/moira-notifier github.com/moira-alert/notifier/notifier
+	go build -ldflags "-X main.Version=$(VERSION)-$(RELEASE)" -o build/moira-notifier github.com/moira-alert/notifier/notifier
 
 test: prepare
 	ginkgo -r --randomizeAllSpecs --randomizeSuites --failOnPending --trace --race --progress tests
@@ -39,7 +40,7 @@ rpm: clean build
 		--license $(LICENSE) \
 		--name "moira-notifier" \
 		--version "$(VERSION)" \
-		--config-files "/usr/lib/systemd/system/moira-notifier.service" \
+		--iteration "$(RELEASE)" \
 		--after-install "./pkg/rpm/postinst" \
 		--depends logrotate \
 		-p build

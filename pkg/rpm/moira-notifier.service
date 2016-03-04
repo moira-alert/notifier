@@ -9,6 +9,8 @@ User=moira
 Group=moira
 Restart=always
 TimeoutStopSec=30s
+LimitMEMLOCK=infinity
+LimitNOFILE=4096
 
 [Install]
 WantedBy=multi-user.target

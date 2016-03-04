@@ -4,7 +4,7 @@ set -e
 
 # Initial installation: $1 == 1
 # Upgrade: $1 == 2, and configured to restart on upgrade
-if [ $1 -eq 1 ] ; then
+#if [ $1 -eq 1 ] ; then
   if ! getent group "moira" > /dev/null 2>&1 ; then
     groupadd -r "moira"
   fi
@@ -23,4 +23,4 @@ if [ $1 -eq 1 ] ; then
   elif [ -x /sbin/chkconfig ] ; then
     /sbin/chkconfig --add moira-notifier
   fi
-fi
+#fi
