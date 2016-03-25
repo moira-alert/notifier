@@ -1,23 +1,7 @@
 language: go
-sudo: false
 go:
-  - 1.4
-  - 1.5
+  - 1.5.3
   - 1.6
-before_install:
-  - make prepare
-  - go get github.com/axw/gocov/gocov
-  - go get github.com/mattn/goveralls
-  - go get golang.org/x/tools/cmd/cover
-  - go get github.com/modocache/gover
-  - go get github.com/golang/lint/golint
-script:
-    - go vet -x ./...
-    - golint ./...
-    - cd tests
-    - ginkgo -r --randomizeAllSpecs -cover --failOnPending -coverpkg=../ --trace --race
-    - gover
-    - goveralls -coverprofile=gover.coverprofile -service=travis-ci
 notifications:
   webhooks:
     urls:
@@ -25,3 +9,35 @@ notifications:
     on_success: change
     on_failure: always
     on_start: never
+before_install:
+  - sudo apt-get install -y rpm
+  - gem install fpm
+  - go get github.com/axw/gocov/gocov
+  - go get github.com/mattn/goveralls
+  - go get golang.org/x/tools/cmd/cover
+  - go get github.com/modocache/gover
+  - go get github.com/golang/lint/golint
+install:
+  - go vet -x ./...
+  - golint ./...
+  - make test
+  - gover
+  - goveralls -coverprofile=gover.coverprofile -service=travis-ci
+script:
+  - make packages
+before_deploy:
+  - export RELEASE_PKG_TAR=$(ls build/moira-notifier*.tar.gz)
+  - export RELEASE_PKG_RPM=$(ls build/moira-notifier*.rpm)
+  - export RELEASE_PKG_DEB=$(ls build/moira-notifier*.deb)
+deploy:
+  provider: releases
+  api_key:
+    secure: kuNhaWPMfrzfLblZShTW6qD8K88l2Gmwc1AcmW74LqpqIgzjAP33DVvRP2vHLpRE1tDWB+79k1Z6sKEij+tbQfJ+KI31dzcLxB3TtCqnaxX3wa6oTlgvv3lVWJavKIZ4I9W8EJqQUa+FTIoAuTPpr8hNh5STCIztPmVX0uAJ+RpcNhiP/rJGL+Q7CFUmkJSc9i4wztULMVb1W/zBDYKFc8c49yb9ZkrqbCLLXr9itlMRSx5Dhpq/ad6rIXcrcpTL5Qf2Bs0TluSjl0dow2wbQuQci/DcG0gSDZIsaT3FOtBjDK1oc5hkQfzkMumZIBj4AHue0rtag61OfdDzvQUJe6WwCLfhtCYyqi1I7VE2wPK5WoroRB9S8aBn0UOWbnef3gXnXZhJisMhsXOaElKddKs1Sz1OvzVwe1vRWDAThjQmG59iQaTql9W26qhPc4ATr87PTWrFJZVe3Ty8++pU9yAxGCiGoNG1SVAwz382b0GtkOkrGDCLNukek+pI/MZEAc4eMbejIFoX5WgR2k34ANBOry1gBB/TMPvEhSzxogzg4YHjeuz1Y04g/O8PHJudlMe1BtX3b7ZdBEAY/4fC5oCz0sVi08uEiC/CG5CcpVHmXgWNPipJDvr9EnFnM5HLujxyDSM/WvHUx2VtPigQKG8aUILt05McO9FCHEESkIE=
+  file:
+    - "${RELEASE_PKG_TAR}"
+    - "${RELEASE_PKG_RPM}"
+    - "${RELEASE_PKG_DEB}"
+  skip_cleanup: true
+  on:
+    tags: true
+    condition: $TRAVIS_GO_VERSION = 1.5.3

@@ -2,3 +2,4 @@
 notifier/notifier
 .coverprofile
 build/
+.vscode
