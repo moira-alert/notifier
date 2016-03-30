@@ -65,9 +65,9 @@ func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.Co
 		IconURL:  icon,
 	}
 
-	channelID, _, err := api.PostMessage(contact.Value, message.String(), params)
+	_, _, err := api.PostMessage(contact.Value, message.String(), params)
 	if err != nil {
-		return fmt.Errorf("Failed to send message to slack channel %s: %s", channelID, err.Error())
+		return fmt.Errorf("Failed to send message to slack [%s]: %s", contact.Value, err.Error())
 	}
 	return nil
 }
