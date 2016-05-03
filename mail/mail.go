@@ -7,6 +7,7 @@ import (
 	"io"
 	"strconv"
 	"time"
+	"net/smtp"
 
 	"github.com/moira-alert/notifier"
 
@@ -87,6 +88,9 @@ type Sender struct {
 	SMTPport    int
 	FrontURI    string
 	InsecureTLS bool
+	Username	string
+	Password	string
+	Hostname	string
 }
 
 // Init read yaml config
@@ -97,6 +101,9 @@ func (sender *Sender) Init(senderSettings map[string]string, logger *logging.Log
 	sender.SMTPport = int(to.Int64(senderSettings["mail_smtp_port"]))
 	sender.InsecureTLS = to.Bool(senderSettings["mail_insecure_tls"])
 	sender.FrontURI = senderSettings["front_uri"]
+	sender.Username = senderSettings["username"]
+	sender.Password = senderSettings["password"]
+	sender.Hostname = senderSettings["hostname"]
 	return nil
 }
 
@@ -152,7 +159,16 @@ func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.Co
 
 	m := sender.MakeMessage(events, contact, trigger, throttled)
 
-	d := gomail.Dialer{Host: sender.SMTPhost, Port: sender.SMTPport, TLSConfig: &tls.Config{InsecureSkipVerify: sender.InsecureTLS}}
+	d := gomail.Dialer{
+		Host: sender.SMTPhost,
+		Port: sender.SMTPport,
+		TLSConfig: &tls.Config{InsecureSkipVerify: sender.InsecureTLS},
+	}
+	
+	if sender.Username != "" {
+		d.Auth = smtp.PlainAuth("", sender.Username, sender.Password, sender.Hostname)
+	}
+
 	if err := d.DialAndSend(m); err != nil {
 		return err
 	}
