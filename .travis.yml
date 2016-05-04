@@ -17,9 +17,11 @@ before_install:
   - go get golang.org/x/tools/cmd/cover
   - go get github.com/modocache/gover
   - go get github.com/golang/lint/golint
+  - pip install smtpd-tls
 install:
   - go vet -x ./...
   - golint ./...
+  - python -m smtpd_tls -n -c DebuggingServer --starttls --keyfile=./func_tests/server.pem localhost:2500 &
   - make test
   - gover
   - goveralls -coverprofile=gover.coverprofile -service=travis-ci

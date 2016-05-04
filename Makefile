@@ -11,6 +11,7 @@ build:
 
 test: prepare
 	ginkgo -r --randomizeAllSpecs --randomizeSuites -cover -coverpkg=../ --failOnPending --trace --race --progress tests
+	ginkgo func_tests
 
 .PHONY: test
 
