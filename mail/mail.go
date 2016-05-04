@@ -106,6 +106,9 @@ func (sender *Sender) Init(senderSettings map[string]string, logger *logging.Log
 		sender.Username = sender.From
 	}
 	// test settings
+	if sender.From == "" {
+		return fmt.Errorf("mail_from can't be empty")
+	}
 	t, err := smtp.Dial(fmt.Sprintf("%s:%d", sender.SMTPhost, sender.SMTPport))
 	if err != nil {
 		return err
