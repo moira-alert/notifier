@@ -19,7 +19,7 @@ before_install:
   - go get golang.org/x/tools/cmd/cover
   - go get github.com/modocache/gover
   - go get github.com/golang/lint/golint
-  - sudo pip install smtpd-tls
+  - pip install smtpd-tls
 install:
   - go vet -x ./...
   - golint ./...
