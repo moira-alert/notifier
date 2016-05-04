@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"net/smtp"
 	"strconv"
 	"time"
-	"net/smtp"
 
 	"github.com/moira-alert/notifier"
 
 	"github.com/gosexy/to"
 	"github.com/op/go-logging"
-	
+
 	gomail "gopkg.in/gomail.v2"
 )
 
@@ -88,9 +88,10 @@ type Sender struct {
 	SMTPport    int
 	FrontURI    string
 	InsecureTLS bool
-	Username	string
-	Password	string
-	Hostname	string
+	Username    string
+	Password    string
+	Hostname    string
+	TLSHostname string
 }
 
 // Init read yaml config
@@ -104,6 +105,7 @@ func (sender *Sender) Init(senderSettings map[string]string, logger *logging.Log
 	sender.Username = senderSettings["username"]
 	sender.Password = senderSettings["password"]
 	sender.Hostname = senderSettings["hostname"]
+	sender.TLSHostname = senderSettings["tls_hostname"]
 	return nil
 }
 
@@ -164,10 +166,10 @@ func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.Co
 		Port: sender.SMTPport,
 		TLSConfig: &tls.Config{
 			InsecureSkipVerify: sender.InsecureTLS,
-			ServerName: sender.Hostname,
+			ServerName:         sender.TLSHostname,
 		},
 	}
-	
+
 	if sender.Username != "" {
 		d.Auth = smtp.PlainAuth("", sender.Username, sender.Password, sender.Hostname)
 	}
