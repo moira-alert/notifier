@@ -1,4 +1,6 @@
 language: go
+dist: trusty
+sudo: required
 go:
   - 1.5.3
   - 1.6
@@ -11,6 +13,7 @@ notifications:
     on_start: never
 before_install:
   - sudo apt-get install -y rpm
+  - sudo apt-get install -y -U python27
   - gem install fpm
   - go get github.com/axw/gocov/gocov
   - go get github.com/mattn/goveralls
