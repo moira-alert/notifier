@@ -162,7 +162,10 @@ func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.Co
 	d := gomail.Dialer{
 		Host: sender.SMTPhost,
 		Port: sender.SMTPport,
-		TLSConfig: &tls.Config{InsecureSkipVerify: sender.InsecureTLS},
+		TLSConfig: &tls.Config{
+			InsecureSkipVerify: sender.InsecureTLS,
+			ServerName: sender.Hostname,
+		},
 	}
 	
 	if sender.Username != "" {
