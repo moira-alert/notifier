@@ -88,24 +88,42 @@ type Sender struct {
 	SMTPport    int
 	FrontURI    string
 	InsecureTLS bool
-	Username    string
 	Password    string
-	Hostname    string
-	TLSHostname string
+	Username    string
 }
 
 // Init read yaml config
 func (sender *Sender) Init(senderSettings map[string]string, logger *logging.Logger) error {
 	sender.SetLogger(logger)
 	sender.From = senderSettings["mail_from"]
-	sender.SMTPhost = senderSettings["mail_smtp_host"]
-	sender.SMTPport = int(to.Int64(senderSettings["mail_smtp_port"]))
-	sender.InsecureTLS = to.Bool(senderSettings["mail_insecure_tls"])
+	sender.SMTPhost = senderSettings["smtp_host"]
+	sender.SMTPport = int(to.Int64(senderSettings["smtp_port"]))
+	sender.InsecureTLS = to.Bool(senderSettings["insecure_tls"])
 	sender.FrontURI = senderSettings["front_uri"]
-	sender.Username = senderSettings["username"]
-	sender.Password = senderSettings["password"]
-	sender.Hostname = senderSettings["hostname"]
-	sender.TLSHostname = senderSettings["tls_hostname"]
+	sender.Password = senderSettings["smtp_pass"]
+	sender.Username = senderSettings["smtp_user"]
+	if sender.Username == "" {
+		sender.Username = sender.From
+	}
+	// test settings
+	t, err := smtp.Dial(fmt.Sprintf("%s:%d", sender.SMTPhost, sender.SMTPport))
+	if err != nil {
+		return err
+	}
+	defer t.Close()
+	if sender.Password != "" {
+		err = t.StartTLS(&tls.Config{
+			InsecureSkipVerify: sender.InsecureTLS,
+			ServerName:         sender.SMTPhost,
+		})
+		if err != nil {
+			return err
+		}
+		err = t.Auth(smtp.PlainAuth("", sender.Username, sender.Password, sender.SMTPhost))
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -166,12 +184,12 @@ func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.Co
 		Port: sender.SMTPport,
 		TLSConfig: &tls.Config{
 			InsecureSkipVerify: sender.InsecureTLS,
-			ServerName:         sender.TLSHostname,
+			ServerName:         sender.SMTPhost,
 		},
 	}
 
-	if sender.Username != "" {
-		d.Auth = smtp.PlainAuth("", sender.Username, sender.Password, sender.Hostname)
+	if sender.Password != "" {
+		d.Auth = smtp.PlainAuth("", sender.Username, sender.Password, sender.SMTPhost)
 	}
 
 	if err := d.DialAndSend(m); err != nil {
