@@ -69,7 +69,7 @@ func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.Co
 		message.WriteString("\nPlease, fix your system or tune this trigger to generate less events.")
 	}
 
-	log.Debugf("Calling pushover with message title %s, body %s", title, message)
+	log.Debugf("Calling pushover with message title %s, body %s", title, message.String())
 
 	pushoverMessage := &pushover.Message{
 		Message:   message.String(),
