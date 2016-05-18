@@ -20,31 +20,12 @@ import (
 	"github.com/op/go-logging"
 )
 
-type testSettings struct {
-	dict map[string]map[string]string
-}
-
-func (c testSettings) Get(section string, key string) string {
-	if section, found := c.dict[section]; found {
-		if value, found := section[key]; found {
-			return value
-		}
-	}
-	return ""
-}
-
-func (c testSettings) GetInterface(section, key string) interface{} {
-	return nil
-}
-
 var (
 	tcReport   = flag.Bool("teamcity", false, "enable TeamCity reporting format")
 	useFakeDb  = flag.Bool("fakedb", true, "use fake db instead localhost real redis")
 	log        *logging.Logger
 	testDb     *testDatabase
-	testConfig = testSettings{
-		make(map[string]map[string]string),
-	}
+	testConfig *notifier.Config
 	sendersRunning = false
 )
 
@@ -66,9 +47,12 @@ var _ = Describe("Notifier", func() {
 	BeforeSuite(func() {
 		log, _ = logging.GetLogger("notifier")
 		notifier.SetLogger(log)
-		testConfig.dict["notifier"] = make(map[string]string)
-		testConfig.dict["notifier"]["sender_timeout"] = "0s10ms"
-		testConfig.dict["notifier"]["resending_timeout"] = "24:00"
+		testConfig = &notifier.Config{
+			Notifier: notifier.NotifierConfig{
+				SenderTimeout: "0s10ms",
+				ResendingTimeout: "24:00",
+			},
+		}
 		notifier.SetSettings(testConfig)
 		logging.SetFormatter(logging.MustStringFormatter("%{time:2006-01-02 15:04:05}\t%{level}\t%{message}"))
 		logBackend := logging.NewLogBackend(os.Stdout, "", 0)

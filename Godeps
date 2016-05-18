@@ -4,7 +4,6 @@ github.com/davecgh/go-spew 5215b55f46b2b919f50a1df0eaa5886afe4e3b3d
 github.com/garyburd/redigo 836b6e58b3358112c8291565d01c35b8764070d7
 github.com/gmlexx/redigomock 9fe6b7bb620ec54d42d9827f2167b6831714eb96
 github.com/gosexy/to c20e083e31230b84ffa23c5d2fb0bc55f5292681
-github.com/gosexy/yaml f9ed4fec963478fbf48795482ce7e4433be53185
 github.com/gregdel/pushover 047451b7c04d2be224d70e49cce1642dd2cf4267
 github.com/nlopes/slack a6a2e430fd2e1bc1f91c0fd538e5c2d0c898f5dc
 github.com/onsi/ginkgo 07d85e6b10c4289c7d612f9b13f45ba36f66d55b
@@ -16,9 +15,6 @@ github.com/stretchr/objx 1a9d0bb9f541897e62256577b352fdbc1fb4fd94
 github.com/stretchr/testify 9f9027faeb0dad515336ed2f28317f9f8f527ab4
 github.com/technoweenie/multipartstreamer a90a01d73ae432e2611d178c18367fbaa13e0154
 golang.org/x/net b6d7b1396ec874c3b00f6c84cd4301a17c56c8ed
-gopkg.in/alexcesaro/quotedprintable.v3 2caba252f4dc53eaf6b553000885530023f54623
 gopkg.in/gomail.v2 fbb71ddc63acd07dd0ed49ababdf02c551e2539a
 gopkg.in/telegram-bot-api.v1 e8dfdeeeb926884b031af3d99bad42615d469618
-gopkg.in/yaml.v1 9f9df34309c04878acc86042b16630b0f696e1de
-menteslibres.net/gosexy/dig 8c84038322702f6214cc1403a74c33c86ad65f9a
-menteslibres.net/gosexy/to c20e083e31230b84ffa23c5d2fb0bc55f5292681
+gopkg.in/yaml.v2 a83829b6f1293c91addabc89d0571c246397bbf4

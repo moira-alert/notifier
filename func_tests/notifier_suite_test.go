@@ -15,22 +15,6 @@ import (
 	"github.com/op/go-logging"
 )
 
-type testSettings struct {
-	dict map[string]map[string]string
-}
-
-func (c testSettings) Get(section string, key string) string {
-	if section, found := c.dict[section]; found {
-		if value, found := section[key]; found {
-			return value
-		}
-	}
-	return ""
-}
-
-func (c testSettings) GetInterface(section, key string) interface{} {
-	return nil
-}
 
 var (
 	tcReport   = flag.Bool("teamcity", false, "enable TeamCity reporting format")

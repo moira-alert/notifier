@@ -8,15 +8,14 @@ import (
 	"time"
 
 	"github.com/cyberdelia/go-metrics-graphite"
-	"github.com/gosexy/to"
 	"github.com/rcrowley/go-metrics"
 )
 
 // InitMetrics inits graphite metrics and starts graphite flush cycle
 func InitMetrics() {
-	graphiteURI := config.Get("graphite", "uri")
-	graphitePrefix := config.Get("graphite", "prefix")
-	graphiteInterval := to.Int64(config.Get("graphite", "interval"))
+	graphiteURI := config.Graphite.URI
+	graphitePrefix := config.Graphite.Prefix
+	graphiteInterval := config.Graphite.Interval
 
 	if graphiteURI != "" {
 		graphiteAddr, err := net.ResolveTCPAddr("tcp", graphiteURI)

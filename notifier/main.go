@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -10,6 +11,7 @@ import (
 	"syscall"
 
 	"github.com/moira-alert/notifier"
+	"gopkg.in/yaml.v2"
 	// 	"moira/notifier/kontur"
 	"github.com/moira-alert/notifier/mail"
 	"github.com/moira-alert/notifier/pushover"
@@ -17,32 +19,17 @@ import (
 	"github.com/moira-alert/notifier/slack"
 	"github.com/moira-alert/notifier/telegram"
 	"github.com/moira-alert/notifier/twilio"
-
-	"github.com/gosexy/to"
-	"github.com/gosexy/yaml"
 	"github.com/op/go-logging"
 )
 
 var (
 	log            *logging.Logger
-	config         notifier.Settings
+	config         *notifier.Config
 	configFileName = flag.String("config", "/etc/moira/config.yml", "path to config file")
 	printVersion   = flag.Bool("version", false, "Print current version and exit")
 
 	Version = "latest"
 )
-
-type yamlSettings struct {
-	file *yaml.Yaml
-}
-
-func (s *yamlSettings) Get(section, key string) string {
-	return to.String(s.file.Get(section, key))
-}
-
-func (s *yamlSettings) GetInterface(section, key string) interface{} {
-	return s.file.Get(section, key)
-}
 
 type worker func(chan bool, *sync.WaitGroup)
 
@@ -57,25 +44,35 @@ func main() {
 		fmt.Printf("Moira notifier version: %s\n", Version)
 		os.Exit(0)
 	}
-	if err := readSettings(*configFileName); err != nil {
+	var err error
+	if config, err = readSettings(*configFileName); err != nil {
 		fmt.Printf("Can not read settings: %s \n", err.Error())
 		os.Exit(1)
 	}
-
+	notifier.SetSettings(config)
 	if err := configureLog(); err != nil {
 		fmt.Printf("Can not configure log: %s \n", err.Error())
 		os.Exit(1)
 	}
-	notifier.InitRedisDatabase()
 	if err := configureSenders(); err != nil {
 		log.Fatalf("Can not configure senders: %s", err.Error())
 	}
+	if err := notifier.CheckSelfStateMonitorSettings(); err != nil {
+		log.Fatalf("Can't configure self state monitor: %s", err.Error())
+	}
+	notifier.InitRedisDatabase()
 	notifier.InitMetrics()
 
 	shutdown := make(chan bool)
 	var wg sync.WaitGroup
 	run(notifier.FetchEvents, shutdown, &wg)
 	run(notifier.FetchScheduledNotifications, shutdown, &wg)
+	if config.Notifier.SelfState.Enabled == "true" {
+		run(notifier.SelfStateMonitor, shutdown, &wg)
+	} else {
+		log.Debugf("Moira Self State Monitoring disabled")
+	}
+
 	log.Infof("Moira Notifier Started. Version: %s", Version)
 	ch := make(chan os.Signal)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
@@ -91,15 +88,13 @@ func configureLog() error {
 	if err != nil {
 		return fmt.Errorf("Can't initialize logger: %s", err.Error())
 	}
-
 	var logBackend *logging.LogBackend
-
-	logLevel, err := logging.LogLevel(config.Get("notifier", "log_level"))
+	logLevel, err := logging.LogLevel(config.Notifier.LogLevel)
 	if err != nil {
 		logLevel = logging.DEBUG
 	}
 	logging.SetFormatter(logging.MustStringFormatter("%{time:2006-01-02 15:04:05}\t%{level}\t%{message}"))
-	logFileName := config.Get("notifier", "log_file")
+	logFileName := config.Notifier.LogFile
 	if logFileName == "stdout" || logFileName == "" {
 		logBackend = logging.NewLogBackend(os.Stdout, "", 0)
 	} else {
@@ -113,26 +108,16 @@ func configureLog() error {
 		}
 		logBackend = logging.NewLogBackend(logFile, "", 0)
 	}
-	logBackend.Color = (config.Get("notifier", "log_color") == "true")
+	logBackend.Color = config.Notifier.LogColor == "true"
 	logging.SetBackend(logBackend)
 	logging.SetLevel(logLevel, "notifier")
-
 	notifier.SetLogger(log)
-
 	return nil
 }
 
 func configureSenders() error {
-	sendersList, ok := config.GetInterface("notifier", "senders").([]interface{})
-	if ok == false {
-		return fmt.Errorf("Failed parse senders")
-	}
-	for _, senderSettingsI := range sendersList {
-		senderSettings := make(map[string]string)
-		for k, v := range senderSettingsI.(map[interface{}]interface{}) {
-			senderSettings[to.String(k)] = to.String(v)
-		}
-		senderSettings["front_uri"] = config.Get("front", "uri")
+	for _, senderSettings := range config.Notifier.Senders {
+		senderSettings["front_uri"] = config.Front.URI
 		switch senderSettings["type"] {
 		case "pushover":
 			if err := notifier.RegisterSender(senderSettings, &pushover.Sender{}); err != nil {
@@ -175,13 +160,42 @@ func configureSenders() error {
 	return nil
 }
 
-func readSettings(configFileName string) error {
-	file, err := yaml.Open(configFileName)
-	if err != nil {
-		return fmt.Errorf("Can't read config file %s: %s", configFileName, err.Error())
+func readSettings(configFileName string) (*notifier.Config, error) {
+	config := &notifier.Config{
+		Redis: notifier.RedisConfig{
+			Host: "localhost",
+			Port: "6379",
+		},
+		Front: notifier.FrontConfig{
+			URI: "http://localhost",
+		},
+		Graphite: notifier.GraphiteConfig{
+			URI:      "localhost:2003",
+			Prefix:   "DevOps.Moira",
+			Interval: 60,
+		},
+		Notifier: notifier.NotifierConfig{
+			LogFile:          "stdout",
+			LogLevel:         "debug",
+			LogColor:         "false",
+			SenderTimeout:    "10s0ms",
+			ResendingTimeout: "24:00",
+			SelfState: notifier.SelfStateConfig{
+				Enabled:                 "false",
+				RedisDisconectDelay:     300,
+				LastMetricReceivedDelay: 300,
+				LastCheckDelay:          300,
+				CkeckPeriod:             180,
+			},
+		},
 	}
-	config = &yamlSettings{file}
-	notifier.SetSettings(config)
-
-	return nil
+	configYaml, err := ioutil.ReadFile(configFileName)
+	if err != nil {
+		return nil, fmt.Errorf("Can't read file [%s] [%s]", configFileName, err.Error())
+	}
+	err = yaml.Unmarshal([]byte(configYaml), &config)
+	if err != nil {
+		return nil, fmt.Errorf("Can't parse config file [%s] [%s]", configFileName, err.Error())
+	}
+	return config, nil
 }

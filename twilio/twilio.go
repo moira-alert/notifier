@@ -7,9 +7,7 @@ import (
 	"time"
 
 	"github.com/op/go-logging"
-
 	"github.com/moira-alert/notifier"
-
 	twilio "github.com/carlosdp/twiliogo"
 )
 
@@ -72,7 +70,7 @@ func (voiceSender *twilioSenderVoice) SendEvents(events notifier.EventsData, con
 	twilioCall, err := twilio.NewCall(voiceSender.client, voiceSender.APIFromPhone, contact.Value, twilio.Callback(voiceSender.voiceURL))
 
 	if err != nil {
-		return fmt.Errorf("Failed to make call to contact %s: %s", contact.Value, err)
+		return fmt.Errorf("Failed to make call to contact %s: %s", contact.Value, err.Error())
 	}
 
 	voiceSender.log.Debugf("Call queued to twilio with status: %s", twilioCall.Status)
