@@ -19,6 +19,7 @@ type notificationPackage struct {
 	Contact   ContactData
 	Throttled bool
 	FailCount int
+	DontResend bool
 }
 
 func (pkg *notificationPackage) String() string {
@@ -76,7 +77,6 @@ func calculateNextDelivery(event *EventData) (time.Time, bool) {
 	} else {
 		next = now
 	}
-
 	next, err = subscription.Schedule.CalculateNextDelivery(next)
 	if err != nil {
 		log.Errorf("Failed to aply schedule for subscriptionID: %s. %s.", event.SubscriptionID, err)
@@ -89,7 +89,6 @@ func scheduleNotification(event EventData, trigger TriggerData, contact ContactD
 		next      time.Time
 		throttled bool
 	)
-
 	if sendfail > 0 {
 		next = GetNow().Add(time.Minute)
 		throttled = throttledOld
@@ -101,7 +100,6 @@ func scheduleNotification(event EventData, trigger TriggerData, contact ContactD
 			next, throttled = calculateNextDelivery(&event)
 		}
 	}
-
 	notification := &ScheduledNotification{
 		Event:     event,
 		Trigger:   trigger,
@@ -110,7 +108,6 @@ func scheduleNotification(event EventData, trigger TriggerData, contact ContactD
 		SendFail:  sendfail,
 		Timestamp: next.Unix(),
 	}
-
 	log.Debugf(
 		"Scheduled notification for contact %s:%s trigger %s at %s (%d)",
 		contact.Type, contact.Value, trigger.Name,
@@ -145,12 +142,10 @@ func FetchScheduledNotifications(shutdown chan bool, wg *sync.WaitGroup) {
 // ProcessScheduledNotifications gets all notifications by now and send it
 func ProcessScheduledNotifications() error {
 	ts := GetNow()
-
 	notifications, err := db.GetNotifications(ts.Unix())
 	if err != nil {
 		return err
 	}
-
 	notificationPackages := make(map[string]*notificationPackage)
 	for _, notification := range notifications {
 		packageKey := fmt.Sprintf("%s:%s:%s", notification.Contact.Type, notification.Contact.Value, notification.Event.TriggerID)
@@ -167,9 +162,7 @@ func ProcessScheduledNotifications() error {
 		p.Events = append(p.Events, notification.Event)
 		notificationPackages[packageKey] = p
 	}
-
 	var sendingWG sync.WaitGroup
-
 	for _, pkg := range notificationPackages {
 		ch, found := sending[pkg.Contact.Type]
 		if !found {

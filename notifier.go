@@ -24,7 +24,7 @@ var (
 
 	log    *logging.Logger
 	db     database
-	config Settings
+	config *Config
 
 	// GetNow allows you to travel in time while testing
 	GetNow = func() time.Time {
@@ -48,8 +48,8 @@ func SetDb(connector *DbConnector) {
 }
 
 // SetSettings allows you to redefine config in tests
-func SetSettings(settings Settings) {
-	config = settings
-	senderTimeout = to.Duration(config.Get("notifier", "sender_timeout"))
-	resendingTimeout = to.Duration(config.Get("notifier", "resending_timeout"))
+func SetSettings(c *Config) {
+	config = c
+	senderTimeout = to.Duration(config.Notifier.SenderTimeout)
+	resendingTimeout = to.Duration(config.Notifier.ResendingTimeout)
 }

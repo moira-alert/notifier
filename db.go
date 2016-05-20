@@ -25,6 +25,7 @@ type database interface {
 	GetTriggerEventsCount(id string, from int64) int64
 	SetTriggerThrottlingTimestamp(id string, next time.Time) error
 	GetNotifications(to int64) ([]*ScheduledNotification, error)
+	GetLastMetricReceivedTS() (int64, error)
 }
 
 // ConvertNotifications extracts ScheduledNotification from redis response
@@ -264,10 +265,21 @@ func (connector *DbConnector) FetchEvent() (*EventData, error) {
 	return nil, nil
 }
 
+// GetLastMetricReceivedTS - return timestamp last received metric by Moira-Cache
+func (connector *DbConnector) GetLastMetricReceivedTS() (int64, error) {
+	c := connector.Pool.Get()
+	defer c.Close()
+	ts, err := redis.Int64(c.Do("GET", "moira-selfstate:last-metric-received-ts"))
+	if err == redis.ErrNil {
+		return 0, nil
+	}
+	return ts, err
+}
+
 // InitRedisDatabase creates Redis pool based on config
 func InitRedisDatabase() {
 	db = &DbConnector{
-		Pool: NewRedisPool(fmt.Sprintf("%s:%s", config.Get("redis", "host"), config.Get("redis", "port"))),
+		Pool: NewRedisPool(fmt.Sprintf("%s:%s", config.Redis.Host, config.Redis.Port)),
 	}
 }
 

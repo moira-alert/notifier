@@ -13,7 +13,7 @@ func run(sender Sender, ch chan notificationPackage) {
 		err := sender.SendEvents(pkg.Events, pkg.Contact, pkg.Trigger, pkg.Throttled)
 		if err == nil {
 			sendersOkMetrics[pkg.Contact.Type].Mark(1)
-		} else {
+		} else if !pkg.DontResend {
 			pkg.resend(err.Error())
 		}
 	}

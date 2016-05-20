@@ -10,10 +10,7 @@ import (
 	"time"
 
 	"github.com/moira-alert/notifier"
-
-	"github.com/gosexy/to"
 	"github.com/op/go-logging"
-
 	gomail "gopkg.in/gomail.v2"
 )
 
@@ -85,7 +82,7 @@ type templateRow struct {
 type Sender struct {
 	From        string
 	SMTPhost    string
-	SMTPport    int
+	SMTPport    int64
 	FrontURI    string
 	InsecureTLS bool
 	Password    string
@@ -97,15 +94,15 @@ func (sender *Sender) Init(senderSettings map[string]string, logger *logging.Log
 	sender.SetLogger(logger)
 	sender.From = senderSettings["mail_from"]
 	sender.SMTPhost = senderSettings["smtp_host"]
-	sender.SMTPport = int(to.Int64(senderSettings["smtp_port"]))
-	sender.InsecureTLS = to.Bool(senderSettings["insecure_tls"])
+	sender.SMTPport, _ = strconv.ParseInt(senderSettings["smtp_port"], 10, 64)
+	sender.InsecureTLS, _ = strconv.ParseBool(senderSettings["insecure_tls"])
 	sender.FrontURI = senderSettings["front_uri"]
 	sender.Password = senderSettings["smtp_pass"]
 	sender.Username = senderSettings["smtp_user"]
 	if sender.Username == "" {
 		sender.Username = sender.From
 	}
-	// test settings
+
 	if sender.From == "" {
 		return fmt.Errorf("mail_from can't be empty")
 	}
@@ -137,7 +134,6 @@ func (sender *Sender) SetLogger(logger *logging.Logger) {
 
 // MakeMessage prepare message to send
 func (sender *Sender) MakeMessage(events notifier.EventsData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) *gomail.Message {
-
 	state := events.GetSubjectState()
 	tags := trigger.GetTags()
 
@@ -184,7 +180,7 @@ func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.Co
 
 	d := gomail.Dialer{
 		Host: sender.SMTPhost,
-		Port: sender.SMTPport,
+		Port: int(sender.SMTPport),
 		TLSConfig: &tls.Config{
 			InsecureSkipVerify: sender.InsecureTLS,
 			ServerName:         sender.SMTPhost,
