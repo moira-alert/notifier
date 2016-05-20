@@ -182,10 +182,10 @@ func readSettings(configFileName string) (*notifier.Config, error) {
 			ResendingTimeout: "24:00",
 			SelfState: notifier.SelfStateConfig{
 				Enabled:                 "false",
-				RedisDisconectDelay:     300,
-				LastMetricReceivedDelay: 300,
-				LastCheckDelay:          300,
-				CkeckPeriod:             180,
+				RedisDisconectDelay:     30,
+				LastMetricReceivedDelay: 60,
+				LastCheckDelay:          60,
+				CkeckPeriod:             300,
 			},
 		},
 	}

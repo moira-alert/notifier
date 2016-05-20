@@ -26,39 +26,48 @@ func CheckSelfStateMonitorSettings() error {
 func SelfStateMonitor(shutdown chan bool, wg *sync.WaitGroup) {
 	defer wg.Done()
 	checkTicker := time.NewTicker(time.Second * 10)
-	sendTicker := time.NewTicker(time.Second * time.Duration(config.Notifier.SelfState.CkeckPeriod))
-	var lastMetricReceivedTS = GetNow().Unix()
-	var redisLastCheckTS = GetNow().Unix()
+	lastMetricReceivedTS := GetNow().Unix()
+	redisLastCheckTS := GetNow().Unix()
+	// lastCheckTS := GetNow().Unix()
+	nextSendErrorMessage := GetNow().Unix()
 
 	log.Debugf("Start Moira Self State Monitor")
 	for {
 		select {
 		case <-shutdown:
 			checkTicker.Stop()
-			sendTicker.Stop()
 			log.Debugf("Stop Self State Monitor")
 			return
 		case <-checkTicker.C:
 			nowTS := GetNow().Unix()
 			var err error
 			lastMetricReceivedTS, err = db.GetLastMetricReceivedTS()
+			// lastCheckTS, err = db.GetLastCheckTS()
 			if err == nil {
 				redisLastCheckTS = nowTS
 			}
-		case <-sendTicker.C:
-			nowTS := GetNow().Unix()
-			if redisLastCheckTS < nowTS-config.Notifier.SelfState.RedisDisconectDelay {
-				log.Errorf("Redis disconnected too long. Send messages.")
-				sendErrorMessages("Redis Disconnected", redisLastCheckTS)
-			}
-			if lastMetricReceivedTS < nowTS-config.Notifier.SelfState.LastMetricReceivedDelay {
-				log.Errorf("Moira-Cache does not get new metrics too long. Send messages.")
-				sendErrorMessages("Moira-Cache does not get new metrics", lastMetricReceivedTS)
+			if nextSendErrorMessage < nowTS {
+				if redisLastCheckTS < nowTS-config.Notifier.SelfState.RedisDisconectDelay {
+					log.Errorf("Redis disconnected too long. Send messages.")
+					sendErrorMessages("Redis Disconnected", nowTS)
+					nextSendErrorMessage = nowTS + config.Notifier.SelfState.CkeckPeriod
+					continue
+				}
+				if lastMetricReceivedTS < nowTS-config.Notifier.SelfState.LastMetricReceivedDelay && err == nil {
+					log.Errorf("Moira-Cache does not get new metrics too long. Send messages.")
+					sendErrorMessages("Moira-Cache does not get new metrics", nowTS)
+					nextSendErrorMessage = nowTS + config.Notifier.SelfState.CkeckPeriod
+					continue
+				}
+				// if lastCheckTS < nowTS-config.Notifier.SelfState.LastCheckDelay && err == nil {
+				// 	log.Errorf("Moira-Checker does not checked triggers too long. Send message.")
+				// 	sendErrorMessages("Moira-Checker does not checked triggers too long", lastMetricReceivedTS)
+				// 	nextSendErrorMessage = nowTS + config.Notifier.SelfState.CkeckPeriod
+				// }
 			}
 		}
 	}
 }
-
 func sendErrorMessages(name string, ts int64) {
 	for _, adminContact := range config.Notifier.SelfState.Contacts {
 		sending[adminContact["type"]] <- notificationPackage{
@@ -73,7 +82,6 @@ func sendErrorMessages(name string, ts int64) {
 				EventData{
 					Timestamp: ts,
 					State:     "ERROR",
-					Message:   "Message",
 					Metric:    name,
 				},
 			},

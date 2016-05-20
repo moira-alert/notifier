@@ -26,6 +26,7 @@ type database interface {
 	SetTriggerThrottlingTimestamp(id string, next time.Time) error
 	GetNotifications(to int64) ([]*ScheduledNotification, error)
 	GetLastMetricReceivedTS() (int64, error)
+	GetLastCheckTS() (int64, error)
 }
 
 // ConvertNotifications extracts ScheduledNotification from redis response
@@ -270,6 +271,17 @@ func (connector *DbConnector) GetLastMetricReceivedTS() (int64, error) {
 	c := connector.Pool.Get()
 	defer c.Close()
 	ts, err := redis.Int64(c.Do("GET", "moira-selfstate:last-metric-received-ts"))
+	if err == redis.ErrNil {
+		return 0, nil
+	}
+	return ts, err
+}
+
+// GetLastCheckTS - return timestamp last check by Moira-Checker 
+func (connector *DbConnector) GetLastCheckTS() (int64, error) {
+	c := connector.Pool.Get()
+	defer c.Close()
+	ts, err := redis.Int64(c.Do("GET", "moira-selfstate:last-check-ts"))
 	if err == redis.ErrNil {
 		return 0, nil
 	}
