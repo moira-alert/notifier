@@ -67,7 +67,7 @@ func main() {
 	var wg sync.WaitGroup
 	run(notifier.FetchEvents, shutdown, &wg)
 	run(notifier.FetchScheduledNotifications, shutdown, &wg)
-	if config.Notifier.SelfState.Enabled == "true" {
+	if notifier.ToBool(config.Notifier.SelfState.Enabled) {
 		run(notifier.SelfStateMonitor, shutdown, &wg)
 	} else {
 		log.Debugf("Moira Self State Monitoring disabled")
@@ -108,7 +108,7 @@ func configureLog() error {
 		}
 		logBackend = logging.NewLogBackend(logFile, "", 0)
 	}
-	logBackend.Color = config.Notifier.LogColor == "true"
+	logBackend.Color = notifier.ToBool(config.Notifier.LogColor)
 	logging.SetBackend(logBackend)
 	logging.SetLevel(logLevel, "notifier")
 	notifier.SetLogger(log)
@@ -185,7 +185,7 @@ func readSettings(configFileName string) (*notifier.Config, error) {
 				RedisDisconectDelay:     30,
 				LastMetricReceivedDelay: 60,
 				LastCheckDelay:          60,
-				CkeckPeriod:             300,
+				NoticeInterval:          300,
 			},
 		},
 	}

@@ -14,11 +14,11 @@ type throttlingLevel struct {
 
 // NotificationPackage respresent notifications grouped by contact type, contact value and triggerID
 type notificationPackage struct {
-	Events    []EventData
-	Trigger   TriggerData
-	Contact   ContactData
-	Throttled bool
-	FailCount int
+	Events     []EventData
+	Trigger    TriggerData
+	Contact    ContactData
+	Throttled  bool
+	FailCount  int
 	DontResend bool
 }
 

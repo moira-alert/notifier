@@ -25,8 +25,8 @@ type database interface {
 	GetTriggerEventsCount(id string, from int64) int64
 	SetTriggerThrottlingTimestamp(id string, next time.Time) error
 	GetNotifications(to int64) ([]*ScheduledNotification, error)
-	GetLastMetricReceivedTS() (int64, error)
-	GetLastCheckTS() (int64, error)
+	GetMetricsCount() (int64, error)
+	GetChecksCount() (int64, error)
 }
 
 // ConvertNotifications extracts ScheduledNotification from redis response
@@ -266,22 +266,22 @@ func (connector *DbConnector) FetchEvent() (*EventData, error) {
 	return nil, nil
 }
 
-// GetLastMetricReceivedTS - return timestamp last received metric by Moira-Cache
-func (connector *DbConnector) GetLastMetricReceivedTS() (int64, error) {
+// GetMetricsCount - return metrics count received by Moira-Cache
+func (connector *DbConnector) GetMetricsCount() (int64, error) {
 	c := connector.Pool.Get()
 	defer c.Close()
-	ts, err := redis.Int64(c.Do("GET", "moira-selfstate:last-metric-received-ts"))
+	ts, err := redis.Int64(c.Do("GET", "moira-selfstate:metrics-heartbeat"))
 	if err == redis.ErrNil {
 		return 0, nil
 	}
 	return ts, err
 }
 
-// GetLastCheckTS - return timestamp last check by Moira-Checker 
-func (connector *DbConnector) GetLastCheckTS() (int64, error) {
+// GetChecksCount - return checks count by Moira-Checker
+func (connector *DbConnector) GetChecksCount() (int64, error) {
 	c := connector.Pool.Get()
 	defer c.Close()
-	ts, err := redis.Int64(c.Do("GET", "moira-selfstate:last-check-ts"))
+	ts, err := redis.Int64(c.Do("GET", "moira-selfstate:checks-counter"))
 	if err == redis.ErrNil {
 		return 0, nil
 	}
