@@ -6,6 +6,9 @@ import (
 	"time"
 )
 
+// SelfCheckInterval defines the period for self check
+var SelfCheckInterval = time.Second * 10
+
 // CheckSelfStateMonitorSettings - validate contact types
 func CheckSelfStateMonitorSettings() error {
 	if !ToBool(config.Notifier.SelfState.Enabled) {
@@ -30,7 +33,7 @@ func SelfStateMonitor(shutdown chan bool, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	var metricsCount, checksCount int64
-	checkTicker := time.NewTicker(time.Second * 10)
+	checkTicker := time.NewTicker(SelfCheckInterval)
 	lastMetricReceivedTS := GetNow().Unix()
 	redisLastCheckTS := GetNow().Unix()
 	lastCheckTS := GetNow().Unix()
