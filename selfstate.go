@@ -8,8 +8,11 @@ import (
 
 // CheckSelfStateMonitorSettings - validate contact types
 func CheckSelfStateMonitorSettings() error {
-	if ToBool(config.Notifier.SelfState.Enabled) {
+	if !ToBool(config.Notifier.SelfState.Enabled) {
 		return nil
+	}
+	if len(config.Notifier.SelfState.Contacts) < 1 {
+		return fmt.Errorf("contacts must be specified")
 	}
 	for _, adminContact := range config.Notifier.SelfState.Contacts {
 		if _, ok := sending[adminContact["type"]]; !ok {
