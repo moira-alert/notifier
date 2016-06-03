@@ -38,5 +38,5 @@ type SelfStateConfig struct {
 	LastMetricReceivedDelay int64               `yaml:"last_metric_received_delay"`
 	LastCheckDelay          int64               `yaml:"last_check_delay"`
 	Contacts                []map[string]string `yaml:"contacts"`
-	CkeckPeriod             int64               `yaml:"notice_interval"`
+	NoticeInterval          int64               `yaml:"notice_interval"`
 }

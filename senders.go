@@ -24,6 +24,7 @@ func StopSenders() {
 	for _, ch := range sending {
 		close(ch)
 	}
+	sending = make(map[string]chan notificationPackage)
 	log.Debug("Waiting senders finish ...")
 	wg.Wait()
 }

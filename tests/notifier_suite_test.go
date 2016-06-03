@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -21,11 +23,11 @@ import (
 )
 
 var (
-	tcReport   = flag.Bool("teamcity", false, "enable TeamCity reporting format")
-	useFakeDb  = flag.Bool("fakedb", true, "use fake db instead localhost real redis")
-	log        *logging.Logger
-	testDb     *testDatabase
-	testConfig *notifier.Config
+	tcReport       = flag.Bool("teamcity", false, "enable TeamCity reporting format")
+	useFakeDb      = flag.Bool("fakedb", true, "use fake db instead localhost real redis")
+	log            *logging.Logger
+	testDb         *testDatabase
+	testConfig     *notifier.Config
 	sendersRunning = false
 )
 
@@ -49,8 +51,20 @@ var _ = Describe("Notifier", func() {
 		notifier.SetLogger(log)
 		testConfig = &notifier.Config{
 			Notifier: notifier.NotifierConfig{
-				SenderTimeout: "0s10ms",
+				SenderTimeout:    "0s10ms",
 				ResendingTimeout: "24:00",
+				SelfState: notifier.SelfStateConfig{
+					Enabled: "true",
+					Contacts: []map[string]string{
+						map[string]string{
+							"type":  "admin-mail",
+							"value": "admin@company.com",
+						},
+					},
+					RedisDisconectDelay:     10,
+					LastMetricReceivedDelay: 60,
+					LastCheckDelay:          120,
+				},
 			},
 		}
 		notifier.SetSettings(testConfig)
@@ -87,12 +101,84 @@ var _ = Describe("Notifier", func() {
 		notifier.GetNow = func() time.Time {
 			return time.Unix(1441188915, 0) // 2 Сентябрь 2015 г. 15:15:15 (GMT +5)
 		}
-		senderSettings := make(map[string]string)
-		senderSettings["type"] = "email"
-		notifier.RegisterSender(senderSettings, &badSender{})
-		senderSettings["type"] = "slack"
-		notifier.RegisterSender(senderSettings, &timeoutSender{})
+		notifier.RegisterSender(map[string]string{"type": "email"}, &badSender{})
+		notifier.RegisterSender(map[string]string{"type": "slack"}, &timeoutSender{})
 		sendersRunning = true
+	})
+
+	Context("SelfCheck", func() {
+		BeforeEach(func() {
+			notifier.SelfCheckInterval = time.Millisecond * 10
+		})
+
+		Context("Config", func() {
+			Context("Admin sender not registered", func() {
+				It("Should not pass check without admin contact", func() {
+					err := notifier.CheckSelfStateMonitorSettings()
+					Expect(err).Should(HaveOccurred())
+				})
+			})
+			Context("Admin sender registered", func() {
+				var sender *adminSender
+				BeforeEach(func() {
+					sender = &adminSender{}
+					notifier.RegisterSender(map[string]string{
+						"type": "admin-mail",
+					}, sender)
+				})
+				It("Should pass check", func() {
+					err := notifier.CheckSelfStateMonitorSettings()
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+				Context("Redis disconnected", func() {
+					var (
+						shutdown chan bool
+						wg       sync.WaitGroup
+					)
+
+					BeforeEach(func() {
+						shutdown = make(chan bool)
+						offset := int64(10)
+						notifier.GetNow = func() time.Time {
+							return time.Now().Add(time.Second * time.Duration(atomic.LoadInt64(&offset)))
+						}
+						wg.Add(2)
+						go notifier.SelfStateMonitor(shutdown, &wg)
+						go func() {
+							defer wg.Done()
+							for {
+								select {
+								case <-shutdown:
+									return
+								case <-time.After(time.Millisecond):
+									atomic.AddInt64(&offset, 10)
+								}
+							}
+						}()
+					})
+
+					AfterEach(func() {
+						close(shutdown)
+						wg.Wait()
+					})
+
+					It("Should notify admin", func() {
+						begin := time.Now()
+						for {
+							sender.mutex.Lock()
+							if sender.lastEvents != nil || begin.Add(time.Second).Before(time.Now()) {
+								sender.mutex.Unlock()
+								break
+							}
+							sender.mutex.Unlock()
+							time.Sleep(time.Millisecond * 10)
+						}
+						Expect(sender.lastEvents).ToNot(BeNil())
+						Expect(sender.lastEvents[0].Metric).To(Equal("Moira-Cache does not received new metrics"))
+					})
+				})
+			})
+		})
 	})
 
 	Context("When one invalid event arrives", func() {

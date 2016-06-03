@@ -2,8 +2,9 @@ package tests
 
 import (
 	"fmt"
-	"github.com/moira-alert/notifier"
 	"time"
+
+	"github.com/moira-alert/notifier"
 
 	"github.com/op/go-logging"
 )
@@ -21,7 +22,6 @@ func (sender *badSender) SendEvents(events notifier.EventsData, contact notifier
 		return fmt.Errorf("I can't send notifications by design")
 	}
 	return nil
-
 }
 
 type timeoutSender struct {
