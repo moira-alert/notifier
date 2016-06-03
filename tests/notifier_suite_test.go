@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -137,9 +138,9 @@ var _ = Describe("Notifier", func() {
 
 					BeforeEach(func() {
 						shutdown = make(chan bool)
-						offset := time.Duration(10)
+						offset := int64(10)
 						notifier.GetNow = func() time.Time {
-							return time.Now().Add(time.Second * offset)
+							return time.Now().Add(time.Second * time.Duration(atomic.LoadInt64(&offset)))
 						}
 						wg.Add(2)
 						go notifier.SelfStateMonitor(shutdown, &wg)
@@ -150,7 +151,7 @@ var _ = Describe("Notifier", func() {
 								case <-shutdown:
 									return
 								case <-time.After(time.Millisecond):
-									offset += 10
+									atomic.AddInt64(&offset, 10)
 								}
 							}
 						}()
@@ -164,9 +165,12 @@ var _ = Describe("Notifier", func() {
 					It("Should notify admin", func() {
 						begin := time.Now()
 						for {
+							sender.mutex.Lock()
 							if sender.lastEvents != nil || begin.Add(time.Second).Before(time.Now()) {
+								sender.mutex.Unlock()
 								break
 							}
+							sender.mutex.Unlock()
 							time.Sleep(time.Millisecond * 10)
 						}
 						Expect(sender.lastEvents).ToNot(BeNil())
