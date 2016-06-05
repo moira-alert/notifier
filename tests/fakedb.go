@@ -114,6 +114,14 @@ var triggers = []notifier.TriggerData{
 		ErrorValue: 20,
 		Tags:       []string{"test-tag-dup-contacts"},
 	},
+	{
+		ID:         "triggerID-0000000000009",
+		Name:       "test trigger 9 (pseudo tag)",
+		Targets:    []string{"test.target.9"},
+		WarnValue:  10,
+		ErrorValue: 20,
+		Tags:       []string{"test-degradation"},
+	},
 }
 
 var subscriptions = []notifier.SubscriptionData{
@@ -256,6 +264,13 @@ var subscriptions = []notifier.SubscriptionData{
 		Tags:              []string{"test-tag-dup-contacts"},
 		Contacts:          []string{contacts[7].ID},
 		ThrottlingEnabled: true,
+	},
+	{
+		ID:                "subscriptionID-00000000000013",
+		Enabled:           true,
+		Tags:              []string{"degradation"},
+		Contacts:          []string{contacts[0].ID},
+		ThrottlingEnabled: false,
 	},
 }
 

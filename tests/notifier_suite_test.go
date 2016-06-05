@@ -106,6 +106,63 @@ var _ = Describe("Notifier", func() {
 		sendersRunning = true
 	})
 
+	Context("Event pseudo tags", func(){
+		Context("Progress", func(){
+			It("Should contains progress tag", func(){
+				event := notifier.EventData{
+					State:     "OK",
+					OldState:  "WARN",
+				}
+				tags := event.GetPseudoTags()
+				Expect(tags).To(Equal([]string{"OK", "WARN", "PROGRESS"}))
+			})
+		})
+		Context("Degradation", func(){
+			It("Should contains degradation tag", func(){
+				event := notifier.EventData{
+					State:     "WARN",
+					OldState:  "OK",
+				}
+				tags := event.GetPseudoTags()
+				Expect(tags).To(Equal([]string{"WARN", "OK", "DEGRADATION"}))
+			})
+			It("Should contains degradation tag", func(){
+				event := notifier.EventData{
+					State:     "ERROR",
+					OldState:  "WARN",
+				}
+				tags := event.GetPseudoTags()
+				Expect(tags).To(Equal([]string{"ERROR", "WARN", "DEGRADATION"}))
+			})
+			It("Should contains high degradation tag", func(){
+				event := notifier.EventData{
+					State:     "ERROR",
+					OldState:  "OK",
+				}
+				tags := event.GetPseudoTags()
+				Expect(tags).To(Equal([]string{"ERROR", "OK", "HIGH DEGRADATION"}))
+			})
+			It("Should contains high degradation tag", func(){
+				event := notifier.EventData{
+					State:     "NODATA",
+					OldState:  "ERROR",
+				}
+				tags := event.GetPseudoTags()
+				Expect(tags).To(Equal([]string{"NODATA", "ERROR", "HIGH DEGRADATION"}))
+			})
+		})
+		Context("Non-weighted test tag", func(){
+			It("Should contains test tag", func(){
+				event := notifier.EventData{
+					State:     "TEST",
+					OldState:  "TEST",
+				}
+				tags := event.GetPseudoTags()
+				Expect(tags).To(Equal([]string{"TEST", "TEST"}))
+			})
+		})
+	})
+
 	Context("SelfCheck", func() {
 		BeforeEach(func() {
 			notifier.SelfCheckInterval = time.Millisecond * 10
