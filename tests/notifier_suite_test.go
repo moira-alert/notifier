@@ -140,7 +140,7 @@ var _ = Describe("Notifier", func() {
 					OldState:  "OK",
 				}
 				tags := event.GetPseudoTags()
-				Expect(tags).To(Equal([]string{"ERROR", "OK", "HIGH DEGRADATION"}))
+				Expect(tags).To(Equal([]string{"ERROR", "OK", "HIGH DEGRADATION", "DEGRADATION"}))
 			})
 			It("Should contains high degradation tag", func(){
 				event := notifier.EventData{
@@ -148,7 +148,7 @@ var _ = Describe("Notifier", func() {
 					OldState:  "ERROR",
 				}
 				tags := event.GetPseudoTags()
-				Expect(tags).To(Equal([]string{"NODATA", "ERROR", "HIGH DEGRADATION"}))
+				Expect(tags).To(Equal([]string{"NODATA", "ERROR", "HIGH DEGRADATION", "DEGRADATION"}))
 			})
 		})
 		Context("Non-weighted test tag", func(){

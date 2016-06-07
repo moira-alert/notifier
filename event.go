@@ -25,9 +25,8 @@ func (event *EventData) GetPseudoTags() []string {
 			if newStateWeight > oldStateWeight {
 				if newStateWeight-oldStateWeight >= 100 {
 					tags = append(tags, eventHighDegradationTag)
-				} else {
-					tags = append(tags, eventDegradationTag)
 				}
+				tags = append(tags, eventDegradationTag)
 			}
 			if newStateWeight < oldStateWeight {
 				tags = append(tags, eventProgressTag)
