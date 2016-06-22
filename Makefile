@@ -1,22 +1,26 @@
-VERSION := $(shell git describe --always --tags --abbrev=0 | tail -c +2)
+VERSION := $(shell git describe --always --tags --abbrev=0 | tail -c+2)
 RELEASE := $(shell git describe --always --tags | awk -F- '{ if ($$2) dot="."} END { printf "1%s%s%s%s\n",dot,$$2,dot,$$3}')
 VENDOR := "SKB Kontur"
 URL := "https://github.com/moira-alert"
 LICENSE := "GPLv3"
 
-default: test build
+export GOPATH := $(CURDIR)/_vendor
+
+default: clean test build
 
 build:
 	go build -ldflags "-X main.Version=$(VERSION)-$(RELEASE)" -o build/moira-notifier github.com/moira-alert/notifier/notifier
 
 test: prepare
-	ginkgo -r --randomizeAllSpecs --randomizeSuites -cover -coverpkg=../ --failOnPending --trace --race --progress tests
+	$(GOPATH)/bin/ginkgo -r --randomizeAllSpecs --randomizeSuites -cover -coverpkg=../ --failOnPending --trace --race --progress tests
 
 .PHONY: test
 
 prepare:
-	go get github.com/sparrc/gdm
-	gdm restore
+	mkdir -p _vendor/src/github.com/moira-alert
+	ln -s $(CURDIR) _vendor/src/github.com/moira-alert/notifier || true
+	go get github.com/AlexAkulov/gdm
+	$(GOPATH)/bin/gdm restore
 	go get github.com/onsi/ginkgo/ginkgo
 
 clean:
