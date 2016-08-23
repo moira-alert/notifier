@@ -3,12 +3,13 @@ package twilio
 import (
 	"bytes"
 	"fmt"
+	"net/url"
 	"strconv"
 	"time"
 
-	"github.com/op/go-logging"
-	"github.com/moira-alert/notifier"
 	twilio "github.com/carlosdp/twiliogo"
+	"github.com/moira-alert/notifier"
+	"github.com/op/go-logging"
 )
 
 type sendEventsTwilio interface {
@@ -27,7 +28,8 @@ type twilioSenderSms struct {
 
 type twilioSenderVoice struct {
 	twilioSender
-	voiceURL string
+	voiceURL      string
+	appendMessage bool
 }
 
 func (smsSender *twilioSenderSms) SendEvents(events notifier.EventsData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error {
@@ -67,7 +69,12 @@ func (smsSender *twilioSenderSms) SendEvents(events notifier.EventsData, contact
 }
 
 func (voiceSender *twilioSenderVoice) SendEvents(events notifier.EventsData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error {
-	twilioCall, err := twilio.NewCall(voiceSender.client, voiceSender.APIFromPhone, contact.Value, twilio.Callback(voiceSender.voiceURL))
+	voiceURL := voiceSender.voiceURL
+	if voiceSender.appendMessage {
+		voiceURL += url.QueryEscape(fmt.Sprintf("Hi! This is a notification for Moira trigger %s. Please, visit Moira web interface for details.", trigger.Name))
+	}
+
+	twilioCall, err := twilio.NewCall(voiceSender.client, voiceSender.APIFromPhone, contact.Value, twilio.Callback(voiceURL))
 
 	if err != nil {
 		return fmt.Errorf("Failed to make call to contact %s: %s", contact.Value, err.Error())
@@ -114,7 +121,13 @@ func (sender *Sender) Init(senderSettings map[string]string, logger *logging.Log
 			return fmt.Errorf("Can not read [%s] voiceurl param from config", apiType)
 		}
 
-		sender.sender = &twilioSenderVoice{twilioSender{twilioClient, apiFromPhone, logger}, voiceURL}
+		appendMessage := senderSettings["append_message"] == "true"
+
+		sender.sender = &twilioSenderVoice{
+			twilioSender{twilioClient, apiFromPhone, logger},
+			voiceURL,
+			appendMessage,
+		}
 
 	default:
 		return fmt.Errorf("Wrong twilio type: %s", apiType)
