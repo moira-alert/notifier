@@ -80,7 +80,7 @@ func (voiceSender *twilioSenderVoice) SendEvents(events notifier.EventsData, con
 		return fmt.Errorf("Failed to make call to contact %s: %s", contact.Value, err.Error())
 	}
 
-	voiceSender.log.Debugf("Call queued to twilio with status: %s", twilioCall.Status)
+	voiceSender.log.Debugf("Call queued to twilio with status %s, callback url %s", twilioCall.Status, voiceURL)
 
 	return nil
 }
