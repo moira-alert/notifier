@@ -291,12 +291,12 @@ func (connector *DbConnector) GetChecksCount() (int64, error) {
 // InitRedisDatabase creates Redis pool based on config
 func InitRedisDatabase() {
 	db = &DbConnector{
-		Pool: NewRedisPool(fmt.Sprintf("%s:%s", config.Redis.Host, config.Redis.Port)),
+		Pool: NewRedisPool(fmt.Sprintf("%s:%s", config.Redis.Host, config.Redis.Port), config.Redis.DBID),
 	}
 }
 
 // NewRedisPool creates Redis pool
-func NewRedisPool(redisURI string) *redis.Pool {
+func NewRedisPool(redisURI string, dbID ...int) *redis.Pool {
 	return &redis.Pool{
 		MaxIdle:     3,
 		IdleTimeout: 240 * time.Second,
@@ -304,6 +304,9 @@ func NewRedisPool(redisURI string) *redis.Pool {
 			c, err := redis.Dial("tcp", redisURI)
 			if err != nil {
 				return nil, err
+			}
+			if len(dbID) > 0 {
+				c.Do("SELECT", dbID[0])
 			}
 			return c, err
 		},

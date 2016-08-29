@@ -20,6 +20,7 @@ type NotifierConfig struct {
 type RedisConfig struct {
 	Host string `yaml:"host"`
 	Port string `yaml:"port"`
+	DBID int    `yaml:"dbid"`
 }
 
 type FrontConfig struct {
