@@ -8,3 +8,4 @@ Moira was originally developed and is supported by SKB Kontur (https://kontur.ru
 
 # Contributors
 - Ruslan Usifov (ruslan@playrix.com)
+- Vladimir Kolobaev (kolobaev.v.l@gmail.com)
