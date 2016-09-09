@@ -57,6 +57,7 @@ var tpl = template.Must(template.New("mail").Parse(`
 				{{end}}
 			</tbody>
 		</table>
+		<p>Description: {{ .Description }}</p>
 		<p><a href="{{ .Link }}">{{ .Link }}</a></p>
 		{{if .Throttled}}
 		<p>Please, <b>fix your system or tune this trigger</b> to generate less events.</p>
@@ -68,14 +69,14 @@ var tpl = template.Must(template.New("mail").Parse(`
 var log *logging.Logger
 
 type templateRow struct {
-	Metric     string
-	Timestamp  string
-	Oldstate   string
-	State      string
-	Value      string
-	WarnValue  string
-	ErrorValue string
-	Message    string
+	Metric      string
+	Timestamp   string
+	Oldstate    string
+	State       string
+	Value       string
+	WarnValue   string
+	ErrorValue  string
+	Message     string
 }
 
 // Sender implements moira sender interface via pushover
@@ -140,25 +141,27 @@ func (sender *Sender) MakeMessage(events notifier.EventsData, contact notifier.C
 	subject := fmt.Sprintf("%s %s %s (%d)", state, trigger.Name, tags, len(events))
 
 	templateData := struct {
-		Link      string
-		Throttled bool
-		Items     []*templateRow
+		Link        string
+		Description string
+		Throttled   bool
+		Items       []*templateRow
 	}{
 		Link:      fmt.Sprintf("%s/#/events/%s", sender.FrontURI, events[0].TriggerID),
+		Description: trigger.Desc,
 		Throttled: throttled,
 		Items:     make([]*templateRow, 0, len(events)),
 	}
 
 	for _, event := range events {
 		templateData.Items = append(templateData.Items, &templateRow{
-			Metric:     event.Metric,
-			Timestamp:  time.Unix(event.Timestamp, 0).Format("15:04 02.01.2006"),
-			Oldstate:   event.OldState,
-			State:      event.State,
-			Value:      strconv.FormatFloat(event.Value, 'f', -1, 64),
-			WarnValue:  strconv.FormatFloat(trigger.WarnValue, 'f', -1, 64),
-			ErrorValue: strconv.FormatFloat(trigger.ErrorValue, 'f', -1, 64),
-			Message:    event.Message,
+			Metric:      event.Metric,
+			Timestamp:   time.Unix(event.Timestamp, 0).Format("15:04 02.01.2006"),
+			Oldstate:    event.OldState,
+			State:       event.State,
+			Value:       strconv.FormatFloat(event.Value, 'f', -1, 64),
+			WarnValue:   strconv.FormatFloat(trigger.WarnValue, 'f', -1, 64),
+			ErrorValue:  strconv.FormatFloat(trigger.ErrorValue, 'f', -1, 64),
+			Message:     event.Message,
 		})
 	}
 
