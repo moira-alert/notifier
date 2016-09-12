@@ -21,6 +21,7 @@ type EventsData []EventData
 type TriggerData struct {
 	ID         string   `json:"id"`
 	Name       string   `json:"name"`
+	Desc       string   `json:"desc"`
 	Targets    []string `json:"targets"`
 	WarnValue  float64  `json:"warn_value"`
 	ErrorValue float64  `json:"error_value"`
