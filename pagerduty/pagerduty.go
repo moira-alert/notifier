@@ -84,10 +84,11 @@ func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.Co
 		Details:     message.String(),
 		Contexts: ""
 	}
-	resp, err := pagerduty.CreateEvent(event)
+	_, err := pagerduty.CreateEvent(event)
 	if err != nil {
-		log.Println(resp)
-		log.Fatalln("ERROR:", err)
+		return fmt.Errorf("Failed to send message to pagerduty user %s: %s", contact.Value, err.Error())
+		//log.Println(resp)
 	}
-	log.Println("Incident key:", resp.IncidentKey)
+	//log.Println("Incident key:", resp.IncidentKey)
+	return nil
 }
