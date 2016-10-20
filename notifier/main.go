@@ -14,6 +14,7 @@ import (
 	"gopkg.in/yaml.v2"
 	// 	"moira/notifier/kontur"
 	"github.com/moira-alert/notifier/mail"
+	"github.com/moira-alert/notifier/pagerduty"
 	"github.com/moira-alert/notifier/pushover"
 	"github.com/moira-alert/notifier/script"
 	"github.com/moira-alert/notifier/slack"
@@ -145,6 +146,10 @@ func configureSenders() error {
 			}
 		case "twilio voice":
 			if err := notifier.RegisterSender(senderSettings, &twilio.Sender{}); err != nil {
+				log.Fatalf("Can not register sender %s: %s", senderSettings["type"], err)
+			}
+		case "pagerduty":
+			if err := notifier.RegisterSender(senderSettings, &pagerduty.Sender{}); err != nil {
 				log.Fatalf("Can not register sender %s: %s", senderSettings["type"], err)
 			}
 		// case "email":

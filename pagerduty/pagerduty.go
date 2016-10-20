@@ -1,11 +1,13 @@
 package pagerduty
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/PagerDuty/go-pagerduty"
-	"io/ioutil"
-	"log"
-	"net/http"
+	"github.com/moira-alert/notifier"
+	"github.com/op/go-logging"
+	"strconv"
+	"time"
 )
 
 var log *logging.Logger
@@ -25,6 +27,10 @@ func (sender *Sender) Init(senderSettings map[string]string, logger *logging.Log
 	log = logger
 	sender.FrontURI = senderSettings["front_uri"]
 	return nil
+}
+
+func (sender *Sender) SetLogger(logger *logging.Logger) {
+	log = logger
 }
 
 // SendEvents implements Sender interface Send
@@ -57,7 +63,7 @@ func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.Co
 
 	subjectState := events.GetSubjectState()
 	title := fmt.Sprintf("%s %s %s (%d)", subjectState, trigger.Name, trigger.GetTags(), len(events))
-	timestamp := events[len(events)-1].Timestamp
+	//timestamp := events[len(events)-1].Timestamp
 
 	var message bytes.Buffer
 
@@ -82,7 +88,7 @@ func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.Co
 		Client:      "Moira",
 		ClientURL:   fmt.Sprintf("%s/#/events/%s", sender.FrontURI, events[0].TriggerID),
 		Details:     message.String(),
-		Contexts: ""
+		//Contexts:    "",
 	}
 	_, err := pagerduty.CreateEvent(event)
 	if err != nil {
