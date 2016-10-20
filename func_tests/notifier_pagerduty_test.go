@@ -65,7 +65,7 @@ var _ = Describe("Notifier", func() {
 		BeforeEach(func() {
 			sender = pagerduty.Sender{
 				FrontURI: "http://localhost",
-				APIToken: "a3d988470c2b4c63940cdd8887032140",
+				APIToken: "",
 			}
 			sender.SetLogger(log)
 			events := make([]notifier.EventData, 0, 10)
