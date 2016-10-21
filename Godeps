@@ -18,3 +18,4 @@ golang.org/x/net b6d7b1396ec874c3b00f6c84cd4301a17c56c8ed
 gopkg.in/gomail.v2 fbb71ddc63acd07dd0ed49ababdf02c551e2539a
 gopkg.in/telegram-bot-api.v1 e8dfdeeeb926884b031af3d99bad42615d469618
 gopkg.in/yaml.v2 a83829b6f1293c91addabc89d0571c246397bbf4
+github.com/PagerDuty/go-pagerduty 45ef5164a846163bdeea4e743dc4f5535ed023ca
