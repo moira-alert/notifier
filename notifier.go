@@ -23,7 +23,7 @@ var (
 	sendersFailedMetrics   = make(map[string]metrics.Meter)
 
 	log    *logging.Logger
-	db     database
+	db     Database
 	config *Config
 
 	// GetNow allows you to travel in time while testing
@@ -43,7 +43,7 @@ func SetLogger(logger *logging.Logger) {
 }
 
 // SetDb allows you to use mock database in tests
-func SetDb(connector *DbConnector) {
+func SetDb(connector Database) {
 	db = connector
 }
 

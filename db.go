@@ -13,7 +13,8 @@ type DbConnector struct {
 	Pool *redis.Pool
 }
 
-type database interface {
+// Database implements DB functionality
+type Database interface {
 	FetchEvent() (*EventData, error)
 	GetTrigger(id string) (TriggerData, error)
 	GetTriggerTags(id string) ([]string, error)
@@ -27,6 +28,8 @@ type database interface {
 	GetNotifications(to int64) ([]*ScheduledNotification, error)
 	GetMetricsCount() (int64, error)
 	GetChecksCount() (int64, error)
+	GetUsernameID(login string) (string, error)
+	SetUsernameID(login string, id string) error
 }
 
 // ConvertNotifications extracts ScheduledNotification from redis response
@@ -288,11 +291,38 @@ func (connector *DbConnector) GetChecksCount() (int64, error) {
 	return ts, err
 }
 
+// GetUsernameID read ID of user by login
+func (connector *DbConnector) GetUsernameID(login string) (string, error) {
+	if len(login) > 0 && login[0] == byte('#') {
+		result := "@" + login[1:]
+		log.Debugf("Channel %s requested. Returning id: %s", login, result)
+		return result, nil
+	}
+
+	c := connector.Pool.Get()
+	defer c.Close()
+
+	result, err := redis.String(c.Do("GET", fmt.Sprintf("moira-users:%s", login)))
+
+	return result, err
+}
+
+// SetUsernameID store id of username
+func (connector *DbConnector) SetUsernameID(login string, id string) error {
+	c := connector.Pool.Get()
+	defer c.Close()
+	if _, err := c.Do("SET", fmt.Sprintf("moira-users:%s", login), id); err != nil {
+		return err
+	}
+	return nil
+}
+
 // InitRedisDatabase creates Redis pool based on config
-func InitRedisDatabase() {
+func InitRedisDatabase() Database {
 	db = &DbConnector{
 		Pool: NewRedisPool(fmt.Sprintf("%s:%s", config.Redis.Host, config.Redis.Port), config.Redis.DBID),
 	}
+	return db
 }
 
 // NewRedisPool creates Redis pool

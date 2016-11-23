@@ -17,6 +17,5 @@ github.com/technoweenie/multipartstreamer a90a01d73ae432e2611d178c18367fbaa13e01
 golang.org/x/net b6d7b1396ec874c3b00f6c84cd4301a17c56c8ed
 gopkg.in/gomail.v2 fbb71ddc63acd07dd0ed49ababdf02c551e2539a
 gopkg.in/yaml.v2 a83829b6f1293c91addabc89d0571c246397bbf4
-github.com/boltdb/bolt 0d9f544bb94aac29c185968483459ef74d6deb5d
 github.com/mitchellh/hashstructure b098c52ef6beab8cd82bc4a32422cf54b890e8fa
 github.com/tucnak/telebot 6360f1f7d9464545d98f2b478cd83240a8ced98e

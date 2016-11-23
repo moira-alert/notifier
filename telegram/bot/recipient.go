@@ -8,6 +8,7 @@ type recipient struct {
 
 // CreateRecipient creates an recipient struct
 func CreateRecipient(uid string) telebot.Recipient {
+
 	return recipient{uid}
 }
 

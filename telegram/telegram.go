@@ -27,6 +27,7 @@ var (
 
 // Sender implements moira sender interface via telegram
 type Sender struct {
+	DB       notifier.Database
 	APIToken string
 	FrontURI string
 }
@@ -44,7 +45,7 @@ func (sender *Sender) Init(senderSettings map[string]string, logger *logging.Log
 	log = logger
 	sender.FrontURI = senderSettings["front_uri"]
 
-	api, _ = bot.StartBot(sender.APIToken, log)
+	api = bot.StartBot(sender.APIToken, log, sender.DB)
 	return nil
 }
 

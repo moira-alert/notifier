@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/moira-alert/notifier"
 	logging "github.com/op/go-logging"
 	"github.com/tucnak/telebot"
 )
@@ -14,7 +15,7 @@ type bot struct {
 	key      string
 	telebot  *telebot.Bot
 	messages chan telebot.Message
-	db       DB
+	db       notifier.Database
 }
 
 // Sender sends message
@@ -38,31 +39,21 @@ var (
 )
 
 // StartBot start a bot
-func StartBot(key string, log *logging.Logger) (Bot, DB) {
+func StartBot(key string, log *logging.Logger, db notifier.Database) Bot {
 	logger = log
-
-	db := NewDb("/tmp/moira.db")
-
-	api := NewBot(key, db)
-	go api.Start()
-
-	return api, db
-}
-
-// NewBot create new bot
-func NewBot(key string, db DB) Bot {
-
 	messages := make(chan telebot.Message)
-	api := bot{
+
+	api := &bot{
 		key:      key,
 		db:       db,
 		messages: messages,
 	}
-	return &api
+	go api.Start()
+
+	return api
 }
 
 func (b *bot) Start() error {
-	defer b.db.Close()
 	b.telebot, _ = telebot.NewBot(b.key)
 	b.telebot.Listen(b.messages, 1*time.Second)
 	for {
@@ -71,11 +62,13 @@ func (b *bot) Start() error {
 			logger.Errorf("Error sending message: %s", err)
 		}
 	}
-
 }
 
 func (b *bot) Send(login, message string) error {
-	uid := b.db.ReadID(login)
+	uid, err := b.db.GetUsernameID(login)
+	if err != nil {
+		return err
+	}
 	logger.Debugf("Uid received: %s", uid)
 	return b.telebot.SendMessage(CreateRecipient(uid), message, nil)
 }
@@ -92,12 +85,18 @@ func (b *bot) handleMessage(message telebot.Message) error {
 			b.telebot.SendMessage(message.Chat, "Username is empty. Please add username in Telegram.", nil)
 		} else {
 			logger.Debugf("Start received: %s", userTitle)
-			b.db.WriteID("@"+username, id)
+			err := b.db.SetUsernameID("@"+username, id)
+			if err != nil {
+				return err
+			}
 			b.telebot.SendMessage(message.Chat, fmt.Sprintf("Okay, %s, your id is %s", userTitle, id), nil)
 		}
 	case chatType == "supergroup":
 		logger.Debugf("Added to supergroup: %s", title)
-		b.db.WriteID(title, id)
+		err := b.db.SetUsernameID(title, id)
+		if err != nil {
+			return err
+		}
 		b.telebot.SendMessage(message.Chat, fmt.Sprintf("Hi, all!\nI will send alerts in this group (%s).", title), nil)
 	default:
 		b.telebot.SendMessage(message.Chat, "I don't understand you :(", nil)
