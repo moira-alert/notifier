@@ -91,8 +91,8 @@ func (b *bot) handleMessage(message telebot.Message) error {
 			}
 			b.telebot.SendMessage(message.Chat, fmt.Sprintf("Okay, %s, your id is %s", userTitle, id), nil)
 		}
-	case chatType == "supergroup":
-		logger.Debugf("Added to supergroup: %s", title)
+	case chatType == "supergroup" || chatType == "group":
+		logger.Debugf("Added to %s: %s", chatType, title)
 		err := b.db.SetUsernameID(title, id)
 		if err != nil {
 			return err
