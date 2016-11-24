@@ -3,6 +3,7 @@ package notifier
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/garyburd/redigo/redis"
@@ -321,31 +322,40 @@ func (connector *DbConnector) SetUsernameID(login string, id string) error {
 	return nil
 }
 
+const (
+	hostKey      = "moira-notifier-host"
+	unregistered = "unregistered"
+)
+
 // NotifierRegistered checks registration of notifier in redis
 func (connector *DbConnector) NotifierRegistered() bool {
-	status, err := connector.GetUsernameID("moira-notifier")
-	if err != nil {
+	status, err := connector.GetUsernameID(hostKey)
+	host, _ := os.Hostname()
+	if err != nil || status == unregistered {
 		return false
 	}
-	return status == "registered"
+
+	log.Debugf("Notifier registration status: %s", status)
+	return status != host
 }
 
 // RegisterNotifier creates registration of notifier instance in redis
 func (connector *DbConnector) RegisterNotifier() error {
-
-	log.Debug("Registering notifier in database")
-	connector.notifierRegistered = true
-	return connector.SetUsernameID("moira-notifier", "registered")
+	host, _ := os.Hostname()
+	log.Debugf("Registering notifier on host %s", host)
+	return connector.SetUsernameID(hostKey, host)
 }
 
 // UnregisterNotifier removes registration of notifier instance in redis
 func (connector *DbConnector) UnregisterNotifier() error {
-	if connector.notifierRegistered {
-		log.Debug("Notifier exists. Removing registration.")
-		return connector.SetUsernameID("moira-notifier", "unregistered")
+	status, _ := connector.GetUsernameID(hostKey)
+	host, _ := os.Hostname()
+	if status == host {
+		log.Debugf("Notifier on host %s exists. Removing registration.", host)
+		return connector.SetUsernameID(hostKey, unregistered)
 	}
 
-	log.Debug("Notifier did't exist. Removing skipped.")
+	log.Debugf("Notifier on host %s did't exist. Removing skipped.", host)
 	return nil
 }
 
