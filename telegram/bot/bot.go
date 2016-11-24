@@ -54,14 +54,20 @@ func StartBot(key string, log *logging.Logger, db notifier.Database) Bot {
 }
 
 func (b *bot) Start() error {
-	b.telebot, _ = telebot.NewBot(b.key)
-	b.telebot.Listen(b.messages, 1*time.Second)
-	for {
-		message := <-b.messages
-		if err := b.handleMessage(message); err != nil {
-			logger.Errorf("Error sending message: %s", err)
+	var err error
+	b.telebot, err = telebot.NewBot(b.key)
+	if !b.db.NotifierRegistered() {
+		b.db.RegisterNotifier()
+		b.telebot.Listen(b.messages, 1*time.Second)
+
+		for {
+			message := <-b.messages
+			if err = b.handleMessage(message); err != nil {
+				logger.Errorf("Error sending message: %s", err)
+			}
 		}
 	}
+	return err
 }
 
 func (b *bot) Send(login, message string) error {

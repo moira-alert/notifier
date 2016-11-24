@@ -10,7 +10,8 @@ import (
 
 //DbConnector contains redis pool
 type DbConnector struct {
-	Pool *redis.Pool
+	Pool               *redis.Pool
+	notifierRegistered bool
 }
 
 // Database implements DB functionality
@@ -30,6 +31,9 @@ type Database interface {
 	GetChecksCount() (int64, error)
 	GetUsernameID(login string) (string, error)
 	SetUsernameID(login string, id string) error
+	NotifierRegistered() bool
+	RegisterNotifier() error
+	UnregisterNotifier() error
 }
 
 // ConvertNotifications extracts ScheduledNotification from redis response
@@ -314,6 +318,34 @@ func (connector *DbConnector) SetUsernameID(login string, id string) error {
 	if _, err := c.Do("SET", fmt.Sprintf("moira-users:%s", login), id); err != nil {
 		return err
 	}
+	return nil
+}
+
+// NotifierRegistered checks registration of notifier in redis
+func (connector *DbConnector) NotifierRegistered() bool {
+	status, err := connector.GetUsernameID("moira-notifier")
+	if err != nil {
+		return false
+	}
+	return status == "registered"
+}
+
+// RegisterNotifier creates registration of notifier instance in redis
+func (connector *DbConnector) RegisterNotifier() error {
+
+	log.Debug("Registering notifier in database")
+	connector.notifierRegistered = true
+	return connector.SetUsernameID("moira-notifier", "registered")
+}
+
+// UnregisterNotifier removes registration of notifier instance in redis
+func (connector *DbConnector) UnregisterNotifier() error {
+	if connector.notifierRegistered {
+		log.Debug("Notifier exists. Removing registration.")
+		return connector.SetUsernameID("moira-notifier", "unregistered")
+	}
+
+	log.Debug("Notifier did't exist. Removing skipped.")
 	return nil
 }
 
