@@ -3,14 +3,14 @@ package telegram
 import (
 	"bytes"
 	"fmt"
-	"net/url"
 	"strconv"
 	"time"
+
+	"github.com/moira-alert/notifier/telegram/bot"
 
 	"github.com/moira-alert/notifier"
 
 	"github.com/op/go-logging"
-	tgbotapi "gopkg.in/telegram-bot-api.v1"
 )
 
 var (
@@ -27,9 +27,14 @@ var (
 
 // Sender implements moira sender interface via telegram
 type Sender struct {
+	DB       notifier.Database
 	APIToken string
 	FrontURI string
 }
+
+var (
+	api bot.Bot
+)
 
 //Init read yaml config
 func (sender *Sender) Init(senderSettings map[string]string, logger *logging.Logger) error {
@@ -39,15 +44,13 @@ func (sender *Sender) Init(senderSettings map[string]string, logger *logging.Log
 	}
 	log = logger
 	sender.FrontURI = senderSettings["front_uri"]
+
+	api = bot.StartBot(sender.APIToken, log, sender.DB)
 	return nil
 }
 
 //SendEvents implements Sender interface Send
 func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.ContactData, trigger notifier.TriggerData, throttled bool) error {
-	bot, err := tgbotapi.NewBotAPI(sender.APIToken)
-	if err != nil {
-		return fmt.Errorf("Failed to init telegram api: %s", err.Error())
-	}
 
 	var message bytes.Buffer
 
@@ -86,13 +89,8 @@ func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.Co
 
 	log.Debugf("Calling telegram api with chat_id %s and message body %s", contact.Value, message.String())
 
-	telegramParams := url.Values{}
-	telegramParams.Set("chat_id", contact.Value)
-	telegramParams.Set("text", message.String())
-	telegramParams.Set("disable_web_page_preview", "true")
-
-	if res, err := bot.MakeRequest("sendMessage", telegramParams); err != nil {
-		return fmt.Errorf("Failed to send message to telegram contact %s: %s. Response: %s", contact.Value, err, res.Description)
+	if err := api.Send(contact.Value, message.String()); err != nil {
+		return fmt.Errorf("Failed to send message to telegram contact %s: %s. ", contact.Value, err)
 	}
 	return nil
 

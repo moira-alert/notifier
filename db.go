@@ -3,6 +3,7 @@ package notifier
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/garyburd/redigo/redis"
@@ -10,10 +11,12 @@ import (
 
 //DbConnector contains redis pool
 type DbConnector struct {
-	Pool *redis.Pool
+	Pool               *redis.Pool
+	notifierRegistered bool
 }
 
-type database interface {
+// Database implements DB functionality
+type Database interface {
 	FetchEvent() (*EventData, error)
 	GetTrigger(id string) (TriggerData, error)
 	GetTriggerTags(id string) ([]string, error)
@@ -27,6 +30,11 @@ type database interface {
 	GetNotifications(to int64) ([]*ScheduledNotification, error)
 	GetMetricsCount() (int64, error)
 	GetChecksCount() (int64, error)
+	GetUsernameID(login string) (string, error)
+	SetUsernameID(login string, id string) error
+	NotifierRegistered() bool
+	RegisterNotifier() error
+	UnregisterNotifier() error
 }
 
 // ConvertNotifications extracts ScheduledNotification from redis response
@@ -288,11 +296,75 @@ func (connector *DbConnector) GetChecksCount() (int64, error) {
 	return ts, err
 }
 
+// GetUsernameID read ID of user by login
+func (connector *DbConnector) GetUsernameID(login string) (string, error) {
+	if len(login) > 0 && login[0] == byte('#') {
+		result := "@" + login[1:]
+		log.Debugf("Channel %s requested. Returning id: %s", login, result)
+		return result, nil
+	}
+
+	c := connector.Pool.Get()
+	defer c.Close()
+
+	result, err := redis.String(c.Do("GET", fmt.Sprintf("moira-users:%s", login)))
+
+	return result, err
+}
+
+// SetUsernameID store id of username
+func (connector *DbConnector) SetUsernameID(login string, id string) error {
+	c := connector.Pool.Get()
+	defer c.Close()
+	if _, err := c.Do("SET", fmt.Sprintf("moira-users:%s", login), id); err != nil {
+		return err
+	}
+	return nil
+}
+
+const (
+	hostKey      = "moira-notifier-host"
+	unregistered = "unregistered"
+)
+
+// NotifierRegistered checks registration of notifier in redis
+func (connector *DbConnector) NotifierRegistered() bool {
+	status, err := connector.GetUsernameID(hostKey)
+	host, _ := os.Hostname()
+	if err != nil || status == unregistered {
+		return false
+	}
+
+	log.Debugf("Notifier registration status: %s", status)
+	return status != host
+}
+
+// RegisterNotifier creates registration of notifier instance in redis
+func (connector *DbConnector) RegisterNotifier() error {
+	host, _ := os.Hostname()
+	log.Debugf("Registering notifier on host %s", host)
+	return connector.SetUsernameID(hostKey, host)
+}
+
+// UnregisterNotifier removes registration of notifier instance in redis
+func (connector *DbConnector) UnregisterNotifier() error {
+	status, _ := connector.GetUsernameID(hostKey)
+	host, _ := os.Hostname()
+	if status == host {
+		log.Debugf("Notifier on host %s exists. Removing registration.", host)
+		return connector.SetUsernameID(hostKey, unregistered)
+	}
+
+	log.Debugf("Notifier on host %s did't exist. Removing skipped.", host)
+	return nil
+}
+
 // InitRedisDatabase creates Redis pool based on config
-func InitRedisDatabase() {
+func InitRedisDatabase() Database {
 	db = &DbConnector{
 		Pool: NewRedisPool(fmt.Sprintf("%s:%s", config.Redis.Host, config.Redis.Port), config.Redis.DBID),
 	}
+	return db
 }
 
 // NewRedisPool creates Redis pool

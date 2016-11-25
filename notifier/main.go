@@ -23,11 +23,12 @@ import (
 )
 
 var (
+	db             notifier.Database
 	log            *logging.Logger
 	config         *notifier.Config
 	configFileName = flag.String("config", "/etc/moira/config.yml", "path to config file")
 	printVersion   = flag.Bool("version", false, "Print current version and exit")
-
+	// Version of notifier
 	Version = "latest"
 )
 
@@ -54,13 +55,13 @@ func main() {
 		fmt.Printf("Can not configure log: %s \n", err.Error())
 		os.Exit(1)
 	}
+	db = notifier.InitRedisDatabase()
 	if err := configureSenders(); err != nil {
 		log.Fatalf("Can not configure senders: %s", err.Error())
 	}
 	if err := notifier.CheckSelfStateMonitorSettings(); err != nil {
 		log.Fatalf("Can't configure self state monitor: %s", err.Error())
 	}
-	notifier.InitRedisDatabase()
 	notifier.InitMetrics()
 
 	shutdown := make(chan bool)
@@ -77,6 +78,7 @@ func main() {
 	ch := make(chan os.Signal)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
 	log.Info(fmt.Sprint(<-ch))
+	db.UnregisterNotifier()
 	close(shutdown)
 	wg.Wait()
 	log.Infof("Moira Notifier Stopped. Version: %s", Version)
@@ -136,7 +138,7 @@ func configureSenders() error {
 				log.Fatalf("Can not register sender %s: %s", senderSettings["type"], err)
 			}
 		case "telegram":
-			if err := notifier.RegisterSender(senderSettings, &telegram.Sender{}); err != nil {
+			if err := notifier.RegisterSender(senderSettings, &telegram.Sender{db, "", ""}); err != nil {
 				log.Fatalf("Can not register sender %s: %s", senderSettings["type"], err)
 			}
 		case "twilio sms":
