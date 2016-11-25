@@ -59,7 +59,7 @@ var _ = Describe("Notifier", func() {
 			contactData = notifier.ContactData{
 				ID:    "ContactID-000000000000001",
 				Type:  "pagerduty",
-				Value: "alxschwrz@gmail.com",
+				Value: "email@example.com",
 			}
 		)
 		BeforeEach(func() {
