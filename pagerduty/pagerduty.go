@@ -63,7 +63,6 @@ func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.Co
 
 	subjectState := events.GetSubjectState()
 	title := fmt.Sprintf("%s %s %s (%d)", subjectState, trigger.Name, trigger.GetTags(), len(events))
-	//timestamp := events[len(events)-1].Timestamp
 
 	var message bytes.Buffer
 
@@ -88,13 +87,10 @@ func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.Co
 		Client:      "Moira",
 		ClientURL:   fmt.Sprintf("%s/#/events/%s", sender.FrontURI, events[0].TriggerID),
 		Details:     message.String(),
-		//Contexts:    "",
 	}
 	_, err := pagerduty.CreateEvent(event)
 	if err != nil {
 		return fmt.Errorf("Failed to send message to pagerduty user %s: %s", contact.Value, err.Error())
-		//log.Println(resp)
 	}
-	//log.Println("Incident key:", resp.IncidentKey)
 	return nil
 }
