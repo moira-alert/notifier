@@ -64,14 +64,14 @@ var _ = Describe("Notifier", func() {
 		)
 		BeforeEach(func() {
 			sender = pagerduty.Sender{
-				FrontURI: "http://localhost",
-				APIToken: "",
+				APIToken: "e93facc04764012d7bfb002500d5d1a6",
 			}
 			sender.SetLogger(log)
 			events := make([]notifier.EventData, 0, 10)
 			for event := range generateTestEvents(10, triggerData.ID) {
 				events = append(events, *event)
 			}
+
 			err = sender.SendEvents(events, contactData, triggerData, true)
 		})
 
