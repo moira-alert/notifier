@@ -12,8 +12,7 @@ import (
 
 //DbConnector contains redis pool
 type DbConnector struct {
-	Pool               *redis.Pool
-	notifierRegistered bool
+	Pool *redis.Pool
 }
 
 // Database implements DB functionality
