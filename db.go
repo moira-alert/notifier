@@ -316,10 +316,14 @@ func (connector *DbConnector) GetIDByUsername(messenger, username string) (strin
 func (connector *DbConnector) SetUsernameID(messenger, username, id string) error {
 	c := connector.Pool.Get()
 	defer c.Close()
-	if _, err := c.Do("SET", fmt.Sprintf("moira-%s-users:%s", messenger, username), id); err != nil {
+	if _, err := c.Do("SET", usernameKey(messenger, username), id); err != nil {
 		return err
 	}
 	return nil
+}
+
+func usernameKey(messenger, username string) string {
+	return fmt.Sprintf("moira-%s-users:%s", messenger, username)
 }
 
 const (
@@ -331,16 +335,30 @@ var messengers = make(map[string]bool)
 
 // RegisterBotIfAlreadyNot creates registration of bot instance in redis
 func (connector *DbConnector) RegisterBotIfAlreadyNot(messenger string) bool {
-	status, err := connector.GetIDByUsername(messenger, botUsername)
 	host, _ := os.Hostname()
+	redisKey := usernameKey(messenger, botUsername)
+	c := connector.Pool.Get()
+	defer c.Close()
+
+	c.Send("WATCH", redisKey)
+
+	status, err := redis.Bytes(c.Do("GET", redisKey))
+	statusStr := string(status)
 	if err != nil {
 		log.Info(err)
 	}
-	if status == host || status == deregistered {
-		connector.SetUsernameID(messenger, botUsername, host)
+	if statusStr == "" || statusStr == host || statusStr == deregistered {
+		c.Send("MULTI")
+		c.Send("SET", redisKey, host)
+		_, err := c.Do("EXEC")
+		if err != nil {
+			log.Info(err)
+			return false
+		}
 		messengers[messenger] = true
 		return true
 	}
+
 	return false
 }
 
