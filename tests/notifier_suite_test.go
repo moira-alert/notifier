@@ -106,56 +106,56 @@ var _ = Describe("Notifier", func() {
 		sendersRunning = true
 	})
 
-	Context("Event pseudo tags", func(){
-		Context("Progress", func(){
-			It("Should contains progress tag", func(){
+	Context("Event pseudo tags", func() {
+		Context("Progress", func() {
+			It("Should contains progress tag", func() {
 				event := notifier.EventData{
-					State:     "OK",
-					OldState:  "WARN",
+					State:    "OK",
+					OldState: "WARN",
 				}
 				tags := event.GetPseudoTags()
 				Expect(tags).To(Equal([]string{"OK", "WARN", "PROGRESS"}))
 			})
 		})
-		Context("Degradation", func(){
-			It("Should contains degradation tag", func(){
+		Context("Degradation", func() {
+			It("Should contains degradation tag", func() {
 				event := notifier.EventData{
-					State:     "WARN",
-					OldState:  "OK",
+					State:    "WARN",
+					OldState: "OK",
 				}
 				tags := event.GetPseudoTags()
 				Expect(tags).To(Equal([]string{"WARN", "OK", "DEGRADATION"}))
 			})
-			It("Should contains degradation tag", func(){
+			It("Should contains degradation tag", func() {
 				event := notifier.EventData{
-					State:     "ERROR",
-					OldState:  "WARN",
+					State:    "ERROR",
+					OldState: "WARN",
 				}
 				tags := event.GetPseudoTags()
 				Expect(tags).To(Equal([]string{"ERROR", "WARN", "DEGRADATION"}))
 			})
-			It("Should contains high degradation tag", func(){
+			It("Should contains high degradation tag", func() {
 				event := notifier.EventData{
-					State:     "ERROR",
-					OldState:  "OK",
+					State:    "ERROR",
+					OldState: "OK",
 				}
 				tags := event.GetPseudoTags()
 				Expect(tags).To(Equal([]string{"ERROR", "OK", "HIGH DEGRADATION", "DEGRADATION"}))
 			})
-			It("Should contains high degradation tag", func(){
+			It("Should contains high degradation tag", func() {
 				event := notifier.EventData{
-					State:     "NODATA",
-					OldState:  "ERROR",
+					State:    "NODATA",
+					OldState: "ERROR",
 				}
 				tags := event.GetPseudoTags()
 				Expect(tags).To(Equal([]string{"NODATA", "ERROR", "HIGH DEGRADATION", "DEGRADATION"}))
 			})
 		})
-		Context("Non-weighted test tag", func(){
-			It("Should contains test tag", func(){
+		Context("Non-weighted test tag", func() {
+			It("Should contains test tag", func() {
 				event := notifier.EventData{
-					State:     "TEST",
-					OldState:  "TEST",
+					State:    "TEST",
+					OldState: "TEST",
 				}
 				tags := event.GetPseudoTags()
 				Expect(tags).To(Equal([]string{"TEST", "TEST"}))
@@ -230,8 +230,10 @@ var _ = Describe("Notifier", func() {
 							sender.mutex.Unlock()
 							time.Sleep(time.Millisecond * 10)
 						}
+						sender.mutex.Lock()
 						Expect(sender.lastEvents).ToNot(BeNil())
 						Expect(sender.lastEvents[0].Metric).To(Equal("Moira-Cache does not received new metrics"))
+						sender.mutex.Unlock()
 					})
 				})
 			})
