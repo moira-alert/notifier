@@ -14,6 +14,7 @@ import (
 )
 
 var (
+	api                  bot.Bot
 	log                  *logging.Logger
 	telegramMessageLimit = 4096
 	emojiStates          = map[string]string{
@@ -31,10 +32,6 @@ type Sender struct {
 	APIToken string
 	FrontURI string
 }
-
-var (
-	api bot.Bot
-)
 
 //Init read yaml config
 func (sender *Sender) Init(senderSettings map[string]string, logger *logging.Logger) error {

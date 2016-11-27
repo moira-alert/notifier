@@ -138,7 +138,7 @@ func configureSenders() error {
 				log.Fatalf("Can not register sender %s: %s", senderSettings["type"], err)
 			}
 		case "telegram":
-			if err := notifier.RegisterSender(senderSettings, &telegram.Sender{db, "", ""}); err != nil {
+			if err := notifier.RegisterSender(senderSettings, &telegram.Sender{DB: db}); err != nil {
 				log.Fatalf("Can not register sender %s: %s", senderSettings["type"], err)
 			}
 		case "twilio sms":

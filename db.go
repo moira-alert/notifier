@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/garyburd/redigo/redis"
@@ -30,11 +31,10 @@ type Database interface {
 	GetNotifications(to int64) ([]*ScheduledNotification, error)
 	GetMetricsCount() (int64, error)
 	GetChecksCount() (int64, error)
-	GetUsernameID(login string) (string, error)
-	SetUsernameID(login string, id string) error
+	GetIDByUsername(messenger, username string) (string, error)
+	SetUsernameID(messenger, username, id string) error
 	NotifierRegistered() bool
-	RegisterNotifier() error
-	UnregisterNotifier() error
+	DeregisterNotifier() error
 }
 
 // ConvertNotifications extracts ScheduledNotification from redis response
@@ -296,27 +296,27 @@ func (connector *DbConnector) GetChecksCount() (int64, error) {
 	return ts, err
 }
 
-// GetUsernameID read ID of user by login
-func (connector *DbConnector) GetUsernameID(login string) (string, error) {
-	if len(login) > 0 && login[0] == byte('#') {
-		result := "@" + login[1:]
-		log.Debugf("Channel %s requested. Returning id: %s", login, result)
+// GetIDByUsername read ID of user by messenger username
+func (connector *DbConnector) GetIDByUsername(messenger, username string) (string, error) {
+	if strings.HasPrefix(username, "#") {
+		result := "@" + username[1:]
+		log.Debugf("Channel %s requested. Returning id: %s", username, result)
 		return result, nil
 	}
 
 	c := connector.Pool.Get()
 	defer c.Close()
 
-	result, err := redis.String(c.Do("GET", fmt.Sprintf("moira-users:%s", login)))
+	result, err := redis.String(c.Do("GET", fmt.Sprintf("moira-%s-users:%s", messenger, username)))
 
 	return result, err
 }
 
 // SetUsernameID store id of username
-func (connector *DbConnector) SetUsernameID(login string, id string) error {
+func (connector *DbConnector) SetUsernameID(messenger, username, id string) error {
 	c := connector.Pool.Get()
 	defer c.Close()
-	if _, err := c.Do("SET", fmt.Sprintf("moira-users:%s", login), id); err != nil {
+	if _, err := c.Do("SET", fmt.Sprintf("moira-%s-users:%s", messenger, username), id); err != nil {
 		return err
 	}
 	return nil
@@ -324,14 +324,14 @@ func (connector *DbConnector) SetUsernameID(login string, id string) error {
 
 const (
 	hostKey      = "moira-notifier-host"
-	unregistered = "unregistered"
+	deregistered = "deregistered"
 )
 
 // NotifierRegistered checks registration of notifier in redis
 func (connector *DbConnector) NotifierRegistered() bool {
-	status, err := connector.GetUsernameID(hostKey)
+	status, err := connector.GetIDByUsername("none", hostKey)
 	host, _ := os.Hostname()
-	if err != nil || status == unregistered {
+	if err != nil || status == deregistered {
 		return false
 	}
 
@@ -343,16 +343,16 @@ func (connector *DbConnector) NotifierRegistered() bool {
 func (connector *DbConnector) RegisterNotifier() error {
 	host, _ := os.Hostname()
 	log.Debugf("Registering notifier on host %s", host)
-	return connector.SetUsernameID(hostKey, host)
+	return connector.SetUsernameID("none", hostKey, host)
 }
 
-// UnregisterNotifier removes registration of notifier instance in redis
-func (connector *DbConnector) UnregisterNotifier() error {
-	status, _ := connector.GetUsernameID(hostKey)
+// DeregisterNotifier removes registration of notifier instance in redis
+func (connector *DbConnector) DeregisterNotifier() error {
+	status, _ := connector.GetIDByUsername("none", hostKey)
 	host, _ := os.Hostname()
 	if status == host {
 		log.Debugf("Notifier on host %s exists. Removing registration.", host)
-		return connector.SetUsernameID(hostKey, unregistered)
+		return connector.SetUsernameID("none", hostKey, deregistered)
 	}
 
 	log.Debugf("Notifier on host %s did't exist. Removing skipped.", host)

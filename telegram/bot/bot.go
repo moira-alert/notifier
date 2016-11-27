@@ -17,6 +17,13 @@ type bot struct {
 	messages chan telebot.Message
 	db       notifier.Database
 }
+type recipient struct {
+	uid string
+}
+
+func (r recipient) Destination() string {
+	return r.uid
+}
 
 // Sender sends message
 type Sender interface {
@@ -76,7 +83,7 @@ func (b *bot) Send(login, message string) error {
 		return err
 	}
 	logger.Debugf("Uid received: %s", uid)
-	return b.telebot.SendMessage(CreateRecipient(uid), message, nil)
+	return b.telebot.SendMessage(recipient{uid}, message, nil)
 }
 
 func (b *bot) handleMessage(message telebot.Message) error {
