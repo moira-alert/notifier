@@ -10,7 +10,7 @@ build:
 	go build -ldflags "-X main.Version=$(VERSION)-$(RELEASE)" -o build/moira-notifier github.com/moira-alert/notifier/notifier
 
 test: prepare
-	ginkgo -r --randomizeAllSpecs --randomizeSuites -cover -coverpkg=../ --failOnPending --trace --race --progress tests
+	ginkgo -r --randomizeAllSpecs --randomizeSuites -cover -coverpkg=../ --failOnPending --trace --race --progress
 
 .PHONY: test
 

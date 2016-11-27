@@ -1,3 +1,5 @@
+// +build func
+
 package tests
 
 import (
@@ -15,11 +17,10 @@ import (
 	"github.com/op/go-logging"
 )
 
-
 var (
-	tcReport   = flag.Bool("teamcity", false, "enable TeamCity reporting format")
-	useFakeDb  = flag.Bool("fakedb", true, "use fake db instead localhost real redis")
-	log        *logging.Logger
+	tcReport  = flag.Bool("teamcity", false, "enable TeamCity reporting format")
+	useFakeDb = flag.Bool("fakedb", true, "use fake db instead localhost real redis")
+	log       *logging.Logger
 )
 
 func TestNotifier(t *testing.T) {

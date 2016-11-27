@@ -33,8 +33,9 @@ type Database interface {
 	GetChecksCount() (int64, error)
 	GetIDByUsername(messenger, username string) (string, error)
 	SetUsernameID(messenger, username, id string) error
-	NotifierRegistered() bool
-	DeregisterNotifier() error
+	RegisterBotIfAlreadyNot(string) bool
+	DeregisterBots()
+	DeregisterBot(string) error
 }
 
 // ConvertNotifications extracts ScheduledNotification from redis response
@@ -323,36 +324,43 @@ func (connector *DbConnector) SetUsernameID(messenger, username, id string) erro
 }
 
 const (
-	hostKey      = "moira-notifier-host"
+	botUsername  = "moira-bot-host"
 	deregistered = "deregistered"
 )
 
-// NotifierRegistered checks registration of notifier in redis
-func (connector *DbConnector) NotifierRegistered() bool {
-	status, err := connector.GetIDByUsername("none", hostKey)
+var messengers = make(map[string]bool)
+
+// RegisterBotIfAlreadyNot creates registration of bot instance in redis
+func (connector *DbConnector) RegisterBotIfAlreadyNot(messenger string) bool {
+	status, err := connector.GetIDByUsername(messenger, botUsername)
 	host, _ := os.Hostname()
-	if err != nil || status == deregistered {
-		return false
+	if err != nil {
+		log.Info(err)
 	}
-
-	log.Debugf("Notifier registration status: %s", status)
-	return status != host
+	if status == host || status == deregistered {
+		connector.SetUsernameID(messenger, botUsername, host)
+		messengers[messenger] = true
+		return true
+	}
+	return false
 }
 
-// RegisterNotifier creates registration of notifier instance in redis
-func (connector *DbConnector) RegisterNotifier() error {
-	host, _ := os.Hostname()
-	log.Debugf("Registering notifier on host %s", host)
-	return connector.SetUsernameID("none", hostKey, host)
+// DeregisterBots cancels registration for all registered messengers
+func (connector *DbConnector) DeregisterBots() {
+	for messenger, flag := range messengers {
+		if flag {
+			connector.DeregisterBot(messenger)
+		}
+	}
 }
 
-// DeregisterNotifier removes registration of notifier instance in redis
-func (connector *DbConnector) DeregisterNotifier() error {
-	status, _ := connector.GetIDByUsername("none", hostKey)
+// DeregisterBot removes registration of bot instance in redis
+func (connector *DbConnector) DeregisterBot(messenger string) error {
+	status, _ := connector.GetIDByUsername(messenger, botUsername)
 	host, _ := os.Hostname()
 	if status == host {
-		log.Debugf("Notifier on host %s exists. Removing registration.", host)
-		return connector.SetUsernameID("none", hostKey, deregistered)
+		log.Debugf("Bot for %s on host %s exists. Removing registration.", messenger, host)
+		return connector.SetUsernameID(messenger, botUsername, deregistered)
 	}
 
 	log.Debugf("Notifier on host %s did't exist. Removing skipped.", host)

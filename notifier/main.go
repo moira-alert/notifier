@@ -78,9 +78,9 @@ func main() {
 	ch := make(chan os.Signal)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
 	log.Info(fmt.Sprint(<-ch))
-	db.UnregisterNotifier()
 	close(shutdown)
 	wg.Wait()
+	db.DeregisterBots()
 	log.Infof("Moira Notifier Stopped. Version: %s", Version)
 }
 

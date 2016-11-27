@@ -11,6 +11,8 @@ import (
 	"github.com/tucnak/telebot"
 )
 
+const messenger = "telegram"
+
 type bot struct {
 	key      string
 	telebot  *telebot.Bot
@@ -30,15 +32,15 @@ type Sender interface {
 	Send(login, message string) error
 }
 
-// Starter starts bot
-type Starter interface {
-	Start() error
+// Listener starts bot
+type Listener interface {
+	Listen()
 }
 
 // Bot implements bot
 type Bot interface {
 	Sender
-	Starter
+	Listener
 }
 
 var (
@@ -55,30 +57,30 @@ func StartBot(key string, log *logging.Logger, db notifier.Database) Bot {
 		db:       db,
 		messages: messages,
 	}
-	go api.Start()
-
+	var err error
+	api.telebot, err = telebot.NewBot(key)
+	if err != nil {
+		log.Warning("Fail to create bot", err)
+	}
+	if db.RegisterBotIfAlreadyNot(messenger) {
+		go api.Listen()
+	}
 	return api
 }
 
-func (b *bot) Start() error {
-	var err error
-	b.telebot, err = telebot.NewBot(b.key)
-	if !b.db.NotifierRegistered() {
-		b.db.RegisterNotifier()
-		b.telebot.Listen(b.messages, 1*time.Second)
+func (b *bot) Listen() {
+	b.telebot.Listen(b.messages, 1*time.Second)
 
-		for {
-			message := <-b.messages
-			if err = b.handleMessage(message); err != nil {
-				logger.Errorf("Error sending message: %s", err)
-			}
+	for {
+		message := <-b.messages
+		if err := b.handleMessage(message); err != nil {
+			logger.Errorf("Error sending message: %s", err)
 		}
 	}
-	return err
 }
 
-func (b *bot) Send(login, message string) error {
-	uid, err := b.db.GetUsernameID(login)
+func (b *bot) Send(username, message string) error {
+	uid, err := b.db.GetIDByUsername(messenger, username)
 	if err != nil {
 		return err
 	}
@@ -98,7 +100,7 @@ func (b *bot) handleMessage(message telebot.Message) error {
 			b.telebot.SendMessage(message.Chat, "Username is empty. Please add username in Telegram.", nil)
 		} else {
 			logger.Debugf("Start received: %s", userTitle)
-			err := b.db.SetUsernameID("@"+username, id)
+			err := b.db.SetUsernameID(messenger, "@"+username, id)
 			if err != nil {
 				return err
 			}
@@ -106,7 +108,7 @@ func (b *bot) handleMessage(message telebot.Message) error {
 		}
 	case chatType == "supergroup" || chatType == "group":
 		logger.Debugf("Added to %s: %s", chatType, title)
-		err := b.db.SetUsernameID(title, id)
+		err := b.db.SetUsernameID(messenger, title, id)
 		if err != nil {
 			return err
 		}

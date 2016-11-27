@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/moira-alert/notifier/telegram/bot"
+	"github.com/moira-alert/notifier/bot"
 
 	"github.com/moira-alert/notifier"
 
