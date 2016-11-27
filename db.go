@@ -385,11 +385,11 @@ func (connector *DbConnector) DeregisterBot(messenger string) error {
 }
 
 // InitRedisDatabase creates Redis pool based on config
-func InitRedisDatabase() Database {
-	db = &DbConnector{
-		Pool: NewRedisPool(fmt.Sprintf("%s:%s", config.Redis.Host, config.Redis.Port), config.Redis.DBID),
+func InitRedisDatabase(config RedisConfig) Database {
+	db := DbConnector{
+		Pool: NewRedisPool(fmt.Sprintf("%s:%s", config.Host, config.Port), config.DBID),
 	}
-	return db
+	return &db
 }
 
 // NewRedisPool creates Redis pool

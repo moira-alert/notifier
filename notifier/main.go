@@ -55,7 +55,7 @@ func main() {
 		fmt.Printf("Can not configure log: %s \n", err.Error())
 		os.Exit(1)
 	}
-	db = notifier.InitRedisDatabase()
+	db = notifier.InitRedisDatabase(config.Redis)
 	if err := configureSenders(); err != nil {
 		log.Fatalf("Can not configure senders: %s", err.Error())
 	}
