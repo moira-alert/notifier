@@ -13,9 +13,14 @@ import (
 
 const messenger = "telegram"
 
+type Telebot interface {
+	Listen(chan telebot.Message, time.Duration)
+	SendMessage(telebot.Recipient, string, *telebot.SendOptions) error
+}
+
 type bot struct {
 	key      string
-	telebot  *telebot.Bot
+	telebot  Telebot
 	messages chan telebot.Message
 	db       notifier.Database
 }
@@ -71,8 +76,7 @@ func StartBot(key string, log *logging.Logger, db notifier.Database) Bot {
 func (b *bot) Listen() {
 	b.telebot.Listen(b.messages, 1*time.Second)
 
-	for {
-		message := <-b.messages
+	for message := range b.messages {
 		if err := b.handleMessage(message); err != nil {
 			logger.Errorf("Error sending message: %s", err)
 		}
@@ -89,6 +93,7 @@ func (b *bot) Send(username, message string) error {
 }
 
 func (b *bot) handleMessage(message telebot.Message) error {
+	var err error
 	id := strconv.FormatInt(message.Chat.ID, 10)
 	title := message.Chat.Title
 	userTitle := strings.Trim(fmt.Sprintf("%s %s", message.Sender.FirstName, message.Sender.LastName), " ")
@@ -100,7 +105,7 @@ func (b *bot) handleMessage(message telebot.Message) error {
 			b.telebot.SendMessage(message.Chat, "Username is empty. Please add username in Telegram.", nil)
 		} else {
 			logger.Debugf("Start received: %s", userTitle)
-			err := b.db.SetUsernameID(messenger, "@"+username, id)
+			err = b.db.SetUsernameID(messenger, "@"+username, id)
 			if err != nil {
 				return err
 			}
@@ -108,7 +113,8 @@ func (b *bot) handleMessage(message telebot.Message) error {
 		}
 	case chatType == "supergroup" || chatType == "group":
 		logger.Debugf("Added to %s: %s", chatType, title)
-		err := b.db.SetUsernameID(messenger, title, id)
+		fmt.Println(chatType, title)
+		err = b.db.SetUsernameID(messenger, title, id)
 		if err != nil {
 			return err
 		}
@@ -117,5 +123,5 @@ func (b *bot) handleMessage(message telebot.Message) error {
 		b.telebot.SendMessage(message.Chat, "I don't understand you :(", nil)
 	}
 	logger.Debugf("Message received: %v", message)
-	return nil
+	return err
 }
