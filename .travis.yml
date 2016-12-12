@@ -11,6 +11,8 @@ notifications:
     on_failure: always
     on_start: never
 before_install:
+  - sudo pip install smtpd-tls
+  - python -m smtpd_tls -n -c DebuggingServer --starttls --keyfile=./tests/server.pem localhost:2500
   - sudo apt-get install -y rpm
   - gem install fpm
   - go get github.com/axw/gocov/gocov
@@ -22,6 +24,7 @@ install:
   - go vet -x ./...
   - golint ./...
   - make test
+  - make func
   - gover
   - goveralls -coverprofile=gover.coverprofile -service=travis-ci
 script:

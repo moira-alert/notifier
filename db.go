@@ -30,11 +30,6 @@ type Database interface {
 	GetNotifications(to int64) ([]*ScheduledNotification, error)
 	GetMetricsCount() (int64, error)
 	GetChecksCount() (int64, error)
-	GetIDByUsername(messenger, username string) (string, error)
-	SetUsernameID(messenger, username, id string) error
-	RegisterBotIfAlreadyNot(string) bool
-	DeregisterBots()
-	DeregisterBot(string) error
 }
 
 // ConvertNotifications extracts ScheduledNotification from redis response

@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/moira-alert/notifier/bot"
+	"github.com/skbkontur/bot"
 
 	"github.com/moira-alert/notifier"
 
@@ -28,7 +28,7 @@ var (
 
 // Sender implements moira sender interface via telegram
 type Sender struct {
-	DB       notifier.Database
+	DB       bot.Database
 	APIToken string
 	FrontURI string
 }
@@ -42,7 +42,7 @@ func (sender *Sender) Init(senderSettings map[string]string, logger *logging.Log
 	log = logger
 	sender.FrontURI = senderSettings["front_uri"]
 
-	api = bot.StartBot(sender.APIToken, log, sender.DB)
+	api = bot.StartTelegramBot(sender.APIToken, log, sender.DB)
 	return nil
 }
 
