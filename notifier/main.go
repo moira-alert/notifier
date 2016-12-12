@@ -23,7 +23,7 @@ import (
 )
 
 var (
-	db             notifier.Database
+	db             *notifier.DbConnector
 	log            *logging.Logger
 	config         *notifier.Config
 	configFileName = flag.String("config", "/etc/moira/config.yml", "path to config file")
