@@ -12,7 +12,7 @@ notifications:
     on_start: never
 before_install:
   - pip install smtpd-tls
-  - python -m smtpd_tls -n -c DebuggingServer --starttls --keyfile=./tests/server.pem localhost:2500
+  - python -m smtpd_tls -n -c DebuggingServer --starttls --keyfile=./tests/server.pem localhost:2500 &
   - sudo apt-get install -y rpm
   - gem install fpm
   - go get github.com/axw/gocov/gocov
