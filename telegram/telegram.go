@@ -37,12 +37,12 @@ type Sender struct {
 func (sender *Sender) Init(senderSettings map[string]string, logger *logging.Logger) error {
 	sender.APIToken = senderSettings["api_token"]
 	if sender.APIToken == "" {
-		return fmt.Errorf("Can not read slack api_token from config")
+		return fmt.Errorf("Can not read telegram api_token from config")
 	}
 	log = logger
 	sender.FrontURI = senderSettings["front_uri"]
 
-	api = bot.StartTelegramBot(sender.APIToken, log, sender.DB)
+	api, _ = bot.StartTelebot(sender.APIToken, sender.DB)
 	return nil
 }
 
@@ -86,7 +86,7 @@ func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.Co
 
 	log.Debugf("Calling telegram api with chat_id %s and message body %s", contact.Value, message.String())
 
-	if err := api.Send(contact.Value, message.String()); err != nil {
+	if err := api.Talk(contact.Value, message.String()); err != nil {
 		return fmt.Errorf("Failed to send message to telegram contact %s: %s. ", contact.Value, err)
 	}
 	return nil
