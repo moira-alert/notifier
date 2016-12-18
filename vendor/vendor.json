@@ -39,12 +39,6 @@
 			"revisionTime": "2016-06-17T16:43:18Z"
 		},
 		{
-			"checksumSHA1": "Sh9gSysXXXM1RDCFjI/hamW1FNY=",
-			"path": "github.com/mitchellh/hashstructure",
-			"revision": "b098c52ef6beab8cd82bc4a32422cf54b890e8fa",
-			"revisionTime": "2016-06-09T17:09:29Z"
-		},
-		{
 			"checksumSHA1": "Tv59jlJDdTKNL5jrQhxt47AAAAE=",
 			"path": "github.com/nlopes/slack",
 			"revision": "e595e9d8590a04ff76407e4e7d1791d25b095c66",
@@ -133,12 +127,6 @@
 			"path": "gopkg.in/gomail.v2",
 			"revision": "81ebce5c23dfd25c6c67194b37d3dd3f338c98b1",
 			"revisionTime": "2016-04-11T21:29:32Z"
-		},
-		{
-			"checksumSHA1": "AzeP9gpBdHRcPQ5ozBpkBcqfInk=",
-			"path": "gopkg.in/telegram-bot-api.v4",
-			"revision": "0a57807db79efce7f6719fbb2c0e0f83fda79aec",
-			"revisionTime": "2016-11-25T05:50:35Z"
 		},
 		{
 			"checksumSHA1": "12GqsW8PiRPnezDDy0v4brZrndM=",

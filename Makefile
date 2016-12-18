@@ -14,6 +14,10 @@ test: prepare
 
 .PHONY: test
 
+lint:
+	go vet -x ./...
+	golint ./...
+
 prepare:
 	go get -v github.com/modocache/gover
 	go get -v golang.org/x/tools/cmd/cover
