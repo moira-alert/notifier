@@ -612,6 +612,14 @@ var _ = Describe("Notifier", func() {
 			})
 		})
 	})
+
+	Context("Initialization methods", func() {
+		config := notifier.RedisConfig{}
+		db := notifier.InitRedisDatabase(config)
+		It("should create connector pool", func() {
+			Expect(db).ShouldNot(BeNil())
+		})
+	})
 })
 
 func assertProcessEvent(event notifier.EventData, expectError bool) {
