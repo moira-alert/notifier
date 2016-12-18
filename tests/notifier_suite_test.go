@@ -619,6 +619,11 @@ var _ = Describe("Notifier", func() {
 		It("should create connector pool", func() {
 			Expect(db).ShouldNot(BeNil())
 		})
+		It("should return error when trying to fake connect", func() {
+			_, err := db.Pool.Dial()
+			Expect(err).Should(HaveOccurred())
+		})
+
 	})
 })
 
