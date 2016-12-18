@@ -15,6 +15,7 @@ before_install:
   - python -m smtpd_tls -n -c DebuggingServer --starttls --keyfile=./tests/server.pem localhost:2500 &
   - sudo apt-get install -y rpm
   - gem install fpm
+  - go get github.com/golang/lint/golint
 install:
   - make lint
   - make test
