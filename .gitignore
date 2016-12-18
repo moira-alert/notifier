@@ -4,3 +4,5 @@ notifier/notifier
 build/
 .vscode
 tests.coverprofile
+
+/vendor/*/
