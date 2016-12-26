@@ -626,11 +626,23 @@ var _ = Describe("Notifier", func() {
 
 	})
 
+	Context("Event manipulation", func() {
+		config := notifier.RedisConfig{}
+		It("should fetch events", func() {
+			db := notifier.InitRedisDatabase(config)
+			db.Pool = testDb.conn.Pool
+			_, err := db.FetchEvent()
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+	})
+
 	Context("Contact manipulation", func() {
 		config := notifier.RedisConfig{}
 
 		It("should throw error when no connection", func() {
 			db := notifier.InitRedisDatabase(config)
+			db.Pool.TestOnBorrow(testDb.conn.Pool.Get(), time.Now())
 			_, err := db.GetContacts()
 			Expect(err).Should(HaveOccurred())
 		})
