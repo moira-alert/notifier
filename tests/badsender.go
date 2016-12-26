@@ -5,14 +5,12 @@ import (
 	"time"
 
 	"github.com/moira-alert/notifier"
-
-	"github.com/op/go-logging"
 )
 
 type badSender struct {
 }
 
-func (sender *badSender) Init(senderSettings map[string]string, logger *logging.Logger) error {
+func (sender *badSender) Init(senderSettings map[string]string, logger notifier.Logger) error {
 	return nil
 }
 
@@ -27,7 +25,7 @@ func (sender *badSender) SendEvents(events notifier.EventsData, contact notifier
 type timeoutSender struct {
 }
 
-func (sender *timeoutSender) Init(senderSettings map[string]string, logger *logging.Logger) error {
+func (sender *timeoutSender) Init(senderSettings map[string]string, logger notifier.Logger) error {
 	return nil
 }
 

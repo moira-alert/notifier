@@ -9,7 +9,6 @@ import (
 
 	twilio "github.com/carlosdp/twiliogo"
 	"github.com/moira-alert/notifier"
-	"github.com/op/go-logging"
 )
 
 type sendEventsTwilio interface {
@@ -19,7 +18,7 @@ type sendEventsTwilio interface {
 type twilioSender struct {
 	client       *twilio.TwilioClient
 	APIFromPhone string
-	log          *logging.Logger
+	log          notifier.Logger
 }
 
 type twilioSenderSms struct {
@@ -91,7 +90,7 @@ type Sender struct {
 }
 
 //Init read yaml config
-func (sender *Sender) Init(senderSettings map[string]string, logger *logging.Logger) error {
+func (sender *Sender) Init(senderSettings map[string]string, logger notifier.Logger) error {
 	apiType := senderSettings["type"]
 
 	apiASID := senderSettings["api_asid"]

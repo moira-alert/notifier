@@ -9,10 +9,9 @@ import (
 	"github.com/moira-alert/notifier"
 
 	"github.com/gregdel/pushover"
-	"github.com/op/go-logging"
 )
 
-var log *logging.Logger
+var log notifier.Logger
 
 // Sender implements moira sender interface via pushover
 type Sender struct {
@@ -21,7 +20,7 @@ type Sender struct {
 }
 
 //Init read yaml config
-func (sender *Sender) Init(senderSettings map[string]string, logger *logging.Logger) error {
+func (sender *Sender) Init(senderSettings map[string]string, logger notifier.Logger) error {
 	sender.APIToken = senderSettings["api_token"]
 	if sender.APIToken == "" {
 		return fmt.Errorf("Can not read pushover api_token from config")

@@ -9,13 +9,11 @@ import (
 	"github.com/skbkontur/bot"
 
 	"github.com/moira-alert/notifier"
-
-	"github.com/op/go-logging"
 )
 
 var (
 	api                  bot.Bot
-	log                  *logging.Logger
+	log                  notifier.Logger
 	telegramMessageLimit = 4096
 	emojiStates          = map[string]string{
 		"OK":     "\xe2\x9c\x85",
@@ -34,7 +32,7 @@ type Sender struct {
 }
 
 //Init read yaml config
-func (sender *Sender) Init(senderSettings map[string]string, logger *logging.Logger) error {
+func (sender *Sender) Init(senderSettings map[string]string, logger notifier.Logger) error {
 	sender.APIToken = senderSettings["api_token"]
 	if sender.APIToken == "" {
 		return fmt.Errorf("Can not read telegram api_token from config")
@@ -42,7 +40,11 @@ func (sender *Sender) Init(senderSettings map[string]string, logger *logging.Log
 	log = logger
 	sender.FrontURI = senderSettings["front_uri"]
 
-	api, _ = bot.StartTelebot(sender.APIToken, sender.DB)
+	var err error
+	api, err = bot.StartTelebot(sender.APIToken, sender.DB)
+	if err != nil {
+		log.Errorf("Error starting bot: %s", err)
+	}
 	return nil
 }
 

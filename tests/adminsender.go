@@ -2,18 +2,16 @@ package tests
 
 import (
 	"sync"
-	"github.com/moira-alert/notifier"
 
-	"github.com/op/go-logging"
+	"github.com/moira-alert/notifier"
 )
 
-
 type adminSender struct {
-	mutex sync.Mutex
+	mutex      sync.Mutex
 	lastEvents notifier.EventsData
 }
 
-func (sender *adminSender) Init(senderSettings map[string]string, logger *logging.Logger) error {
+func (sender *adminSender) Init(senderSettings map[string]string, logger notifier.Logger) error {
 	return nil
 }
 

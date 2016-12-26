@@ -12,9 +12,9 @@ import (
 	"sync"
 	"syscall"
 
+	//	"moira/notifier/kontur"
+
 	"github.com/moira-alert/notifier"
-	"gopkg.in/yaml.v2"
-	// 	"moira/notifier/kontur"
 	"github.com/moira-alert/notifier/mail"
 	"github.com/moira-alert/notifier/pushover"
 	"github.com/moira-alert/notifier/script"
@@ -22,12 +22,13 @@ import (
 	"github.com/moira-alert/notifier/telegram"
 	"github.com/moira-alert/notifier/twilio"
 	"github.com/op/go-logging"
+	"gopkg.in/yaml.v2"
 )
 
 var (
 	db             *notifier.DbConnector
-	log            *logging.Logger
 	config         *notifier.Config
+	log            notifier.Logger
 	configFileName = flag.String("config", "/etc/moira/config.yml", "path to config file")
 	printVersion   = flag.Bool("version", false, "Print current version and exit")
 	convertDb      = flag.Bool("convert", false, "Convert telegram contacts and exit")
@@ -156,12 +157,12 @@ func configureSenders() error {
 			if err := notifier.RegisterSender(senderSettings, &twilio.Sender{}); err != nil {
 				log.Fatalf("Can not register sender %s: %s", senderSettings["type"], err)
 			}
-		// case "email":
-		// 	if err := notifier.RegisterSender(senderSettings, &kontur.MailSender{}); err != nil {
-		// 	}
-		// case "phone":
-		// 	if err := notifier.RegisterSender(senderSettings, &kontur.SmsSender{}); err != nil {
-		// 	}
+			//		case "email":
+			//			if err := notifier.RegisterSender(senderSettings, &kontur.MailSender{}); err != nil {
+			//			}
+			//		case "phone":
+			//			if err := notifier.RegisterSender(senderSettings, &kontur.SmsSender{}); err != nil {
+			//			}
 		default:
 			return fmt.Errorf("Unknown sender type [%s]", senderSettings["type"])
 		}
