@@ -21,6 +21,8 @@ type Database interface {
 	GetTagsSubscriptions(tags []string) ([]SubscriptionData, error)
 	GetSubscription(id string) (SubscriptionData, error)
 	GetContact(id string) (ContactData, error)
+	GetContacts() ([]ContactData, error)
+	SetContact(contact *ContactData) error
 	AddNotification(notification *ScheduledNotification) error
 	GetTriggerThrottlingTimestamps(id string) (time.Time, time.Time)
 	GetTriggerEventsCount(id string, from int64) int64
@@ -155,6 +157,40 @@ func (connector *DbConnector) GetContact(id string) (ContactData, error) {
 	}
 	contact.ID = id
 	return contact, nil
+}
+
+// GetContacts returns full contact list
+func (connector *DbConnector) GetContacts() ([]ContactData, error) {
+	c := connector.Pool.Get()
+	defer c.Close()
+
+	var result []ContactData
+	keys, err := redis.Strings(c.Do("KEYS", "moira-contact:*"))
+	if err != nil {
+		return result, err
+	}
+	for _, key := range keys {
+		key = key[14:]
+		contact, _ := connector.GetContact(key)
+		result = append(result, contact)
+	}
+	return result, err
+}
+
+// SetContact store contact information
+func (connector *DbConnector) SetContact(contact *ContactData) error {
+	id := contact.ID
+	contactString, err := json.Marshal(contact)
+	if err != nil {
+		return err
+	}
+
+	c := connector.Pool.Get()
+	defer c.Close()
+	if _, err := c.Do("SET", fmt.Sprintf("moira-contact:%s", id), contactString); err != nil {
+		return err
+	}
+	return nil
 }
 
 // GetSubscription returns subscription data by given id

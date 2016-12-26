@@ -1,12 +1,14 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"sync"
 	"syscall"
 
@@ -28,6 +30,7 @@ var (
 	config         *notifier.Config
 	configFileName = flag.String("config", "/etc/moira/config.yml", "path to config file")
 	printVersion   = flag.Bool("version", false, "Print current version and exit")
+	convertDb      = flag.Bool("convert", false, "Convert telegram contacts and exit")
 	// Version of notifier
 	Version = "latest"
 )
@@ -56,6 +59,11 @@ func main() {
 		os.Exit(1)
 	}
 	db = notifier.InitRedisDatabase(config.Redis)
+	notifier.SetDb(db)
+	if *convertDb {
+		convertDatabase(db)
+	}
+
 	if err := configureSenders(); err != nil {
 		log.Fatalf("Can not configure senders: %s", err.Error())
 	}
@@ -160,6 +168,26 @@ func configureSenders() error {
 		}
 	}
 	return nil
+}
+
+func convertDatabase(db notifier.Database) {
+	fmt.Println("This will convert all telegram contacts from @ notation to #.")
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print("Continue? [y/N]: ")
+	text, _ := reader.ReadString('\n')
+	if !strings.HasPrefix(text, "Y") && !strings.HasPrefix(text, "y") {
+		fmt.Println("Aborted")
+		os.Exit(0)
+	}
+
+	res, _ := db.GetContacts()
+	for _, contact := range res {
+		if contact.Type == "telegram" && strings.HasPrefix(contact.Value, "@") {
+			contact.Value = fmt.Sprintf("#%v", contact.Value[1:])
+			db.SetContact(&contact)
+		}
+	}
+	os.Exit(0)
 }
 
 func readSettings(configFileName string) (*notifier.Config, error) {

@@ -33,6 +33,7 @@ type ContactData struct {
 	Type  string `json:"type"`
 	Value string `json:"value"`
 	ID    string `json:"id"`
+	User  string `json:"user"`
 }
 
 //SubscriptionData respresent user subscription
