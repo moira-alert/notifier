@@ -625,6 +625,36 @@ var _ = Describe("Notifier", func() {
 		})
 
 	})
+
+	Context("Contact manipulation", func() {
+		config := notifier.RedisConfig{}
+
+		It("should throw error when no connection", func() {
+			db := notifier.InitRedisDatabase(config)
+			_, err := db.GetContacts()
+			Expect(err).Should(HaveOccurred())
+		})
+
+		It("should save contact", func() {
+			db := notifier.InitRedisDatabase(config)
+			db.Pool = testDb.conn.Pool
+			contact := notifier.ContactData{
+				ID:    "id",
+				Type:  "telegram",
+				Value: "contact",
+			}
+			err := db.SetContact(&contact)
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		It("shouldn't throw error when connection exists", func() {
+			db := notifier.InitRedisDatabase(config)
+			db.Pool = testDb.conn.Pool
+			_, err := db.GetContacts()
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+	})
 })
 
 func assertProcessEvent(event notifier.EventData, expectError bool) {

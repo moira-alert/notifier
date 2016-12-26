@@ -172,8 +172,8 @@ func configureSenders() error {
 
 func convertDatabase(db notifier.Database) {
 	fmt.Println("This will convert all telegram contacts from @ notation to #.")
-	reader := bufio.NewReader(os.Stdin)
 	fmt.Print("Continue? [y/N]: ")
+	reader := bufio.NewReader(os.Stdin)
 	text, _ := reader.ReadString('\n')
 	if !strings.HasPrefix(text, "Y") && !strings.HasPrefix(text, "y") {
 		fmt.Println("Aborted")
