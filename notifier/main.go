@@ -31,8 +31,7 @@ var (
 	configFileName = flag.String("config", "/etc/moira/config.yml", "path to config file")
 	printVersion   = flag.Bool("version", false, "Print current version and exit")
 	convertDb      = flag.Bool("convert", false, "Convert telegram contacts and exit")
-	// Version of notifier
-	Version = "latest"
+	Version        = "latest"
 )
 
 type worker func(chan bool, *sync.WaitGroup)
