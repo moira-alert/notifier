@@ -13,13 +13,16 @@ type DbConnector struct {
 	Pool *redis.Pool
 }
 
-type database interface {
+// Database implements DB functionality
+type Database interface {
 	FetchEvent() (*EventData, error)
 	GetTrigger(id string) (TriggerData, error)
 	GetTriggerTags(id string) ([]string, error)
 	GetTagsSubscriptions(tags []string) ([]SubscriptionData, error)
 	GetSubscription(id string) (SubscriptionData, error)
 	GetContact(id string) (ContactData, error)
+	GetContacts() ([]ContactData, error)
+	SetContact(contact *ContactData) error
 	AddNotification(notification *ScheduledNotification) error
 	GetTriggerThrottlingTimestamps(id string) (time.Time, time.Time)
 	GetTriggerEventsCount(id string, from int64) int64
@@ -156,6 +159,40 @@ func (connector *DbConnector) GetContact(id string) (ContactData, error) {
 	return contact, nil
 }
 
+// GetContacts returns full contact list
+func (connector *DbConnector) GetContacts() ([]ContactData, error) {
+	c := connector.Pool.Get()
+	defer c.Close()
+
+	var result []ContactData
+	keys, err := redis.Strings(c.Do("KEYS", "moira-contact:*"))
+	if err != nil {
+		return result, err
+	}
+	for _, key := range keys {
+		key = key[14:]
+		contact, _ := connector.GetContact(key)
+		result = append(result, contact)
+	}
+	return result, err
+}
+
+// SetContact store contact information
+func (connector *DbConnector) SetContact(contact *ContactData) error {
+	id := contact.ID
+	contactString, err := json.Marshal(contact)
+	if err != nil {
+		return err
+	}
+
+	c := connector.Pool.Get()
+	defer c.Close()
+	if _, err := c.Do("SET", fmt.Sprintf("moira-contact:%s", id), contactString); err != nil {
+		return err
+	}
+	return nil
+}
+
 // GetSubscription returns subscription data by given id
 func (connector *DbConnector) GetSubscription(id string) (SubscriptionData, error) {
 	c := connector.Pool.Get()
@@ -289,10 +326,11 @@ func (connector *DbConnector) GetChecksCount() (int64, error) {
 }
 
 // InitRedisDatabase creates Redis pool based on config
-func InitRedisDatabase() {
-	db = &DbConnector{
-		Pool: NewRedisPool(fmt.Sprintf("%s:%s", config.Redis.Host, config.Redis.Port), config.Redis.DBID),
+func InitRedisDatabase(config RedisConfig) *DbConnector {
+	db := DbConnector{
+		Pool: NewRedisPool(fmt.Sprintf("%s:%s", config.Host, config.Port), config.DBID),
 	}
+	return &db
 }
 
 // NewRedisPool creates Redis pool

@@ -1,6 +1,8 @@
 .DS_Store
 notifier/notifier
-.coverprofile
+*.coverprofile
 build/
 .vscode
 tests.coverprofile
+
+/vendor/*/

@@ -3,15 +3,15 @@ package script
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/moira-alert/notifier"
-	"github.com/op/go-logging"
 	"io"
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/moira-alert/notifier"
 )
 
-var log *logging.Logger
+var log notifier.Logger
 
 // Sender implements moira sender interface via script execution
 type Sender struct {
@@ -27,7 +27,7 @@ type scriptNotification struct {
 }
 
 //Init read yaml config
-func (sender *Sender) Init(senderSettings map[string]string, logger *logging.Logger) error {
+func (sender *Sender) Init(senderSettings map[string]string, logger notifier.Logger) error {
 	if senderSettings["name"] == "" {
 		return fmt.Errorf("Required name for sender type script")
 	}

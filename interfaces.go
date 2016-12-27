@@ -1,7 +1,5 @@
 package notifier
 
-import "github.com/op/go-logging"
-
 // EventData represents trigger state changes event
 type EventData struct {
 	Timestamp      int64   `json:"timestamp"`
@@ -33,6 +31,7 @@ type ContactData struct {
 	Type  string `json:"type"`
 	Value string `json:"value"`
 	ID    string `json:"id"`
+	User  string `json:"user"`
 }
 
 //SubscriptionData respresent user subscription
@@ -68,8 +67,22 @@ type ScheduledNotification struct {
 	Timestamp int64       `json:"timestamp"`
 }
 
+// Logger implements logger abstraction
+type Logger interface {
+	Debug(args ...interface{})
+	Debugf(format string, args ...interface{})
+	Info(args ...interface{})
+	Infof(format string, args ...interface{})
+	Error(args ...interface{})
+	Errorf(format string, args ...interface{})
+	Fatal(args ...interface{})
+	Fatalf(format string, args ...interface{})
+	Warning(args ...interface{})
+	Warningf(format string, args ...interface{})
+}
+
 // Sender interface for implementing specified contact type sender
 type Sender interface {
 	SendEvents(events EventsData, contact ContactData, trigger TriggerData, throttled bool) error
-	Init(senderSettings map[string]string, logger *logging.Logger) error
+	Init(senderSettings map[string]string, logger Logger) error
 }

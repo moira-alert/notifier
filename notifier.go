@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/gosexy/to"
-	"github.com/op/go-logging"
 	"github.com/rcrowley/go-metrics"
 )
 
@@ -22,8 +21,8 @@ var (
 	sendersOkMetrics       = make(map[string]metrics.Meter)
 	sendersFailedMetrics   = make(map[string]metrics.Meter)
 
-	log    *logging.Logger
-	db     database
+	log    Logger
+	db     Database
 	config *Config
 
 	// GetNow allows you to travel in time while testing
@@ -38,12 +37,12 @@ func GetWaitGroup() *sync.WaitGroup {
 }
 
 // SetLogger allows you to redefine logging in tests
-func SetLogger(logger *logging.Logger) {
+func SetLogger(logger Logger) {
 	log = logger
 }
 
 // SetDb allows you to use mock database in tests
-func SetDb(connector *DbConnector) {
+func SetDb(connector Database) {
 	db = connector
 }
 

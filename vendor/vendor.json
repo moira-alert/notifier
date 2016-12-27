@@ -1,0 +1,163 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "ZmH0Y8Td1CUGfc6ywB40e2u1Kvc=",
+			"path": "github.com/carlosdp/twiliogo",
+			"revision": "b26045ebb9d15c9296ba59d94687aaf7d2080905",
+			"revisionTime": "2016-10-27T18:37:05Z"
+		},
+		{
+			"checksumSHA1": "8/Q1JbAHUmL4sDURLq6yron4K/I=",
+			"path": "github.com/cyberdelia/go-metrics-graphite",
+			"revision": "7e54b5c2aa6eaff4286c44129c3def899dff528c",
+			"revisionTime": "2015-12-04T23:33:54Z"
+		},
+		{
+			"checksumSHA1": "dvabztWVQX8f6oMLRyv4dLH+TGY=",
+			"path": "github.com/davecgh/go-spew/spew",
+			"revision": "346938d642f2ec3594ed81d874461961cd0faa76",
+			"revisionTime": "2016-10-29T20:57:26Z"
+		},
+		{
+			"checksumSHA1": "2UmMbNHc8FBr98mJFN1k8ISOIHk=",
+			"path": "github.com/garyburd/redigo/internal",
+			"revision": "f8c71fc158ba13d50a7f5d8f10ea18ec49463c73",
+			"revisionTime": "2016-12-16T23:12:39Z"
+		},
+		{
+			"checksumSHA1": "pofHSvosTrIPzQyddaLX5wy0ehI=",
+			"path": "github.com/garyburd/redigo/redis",
+			"revision": "f8c71fc158ba13d50a7f5d8f10ea18ec49463c73",
+			"revisionTime": "2016-12-16T23:12:39Z"
+		},
+		{
+			"checksumSHA1": "3OUNjLb7x0INlhZs8s0C/eD9MBY=",
+			"path": "github.com/gmlexx/redigomock",
+			"revision": "9fe6b7bb620ec54d42d9827f2167b6831714eb96",
+			"revisionTime": "2016-01-27T10:17:10Z"
+		},
+		{
+			"checksumSHA1": "MFb5D6fGctGxRoeYakh0Eo2BF+I=",
+			"path": "github.com/gosexy/to",
+			"revision": "c20e083e31230b84ffa23c5d2fb0bc55f5292681",
+			"revisionTime": "2014-12-21T20:36:44Z"
+		},
+		{
+			"checksumSHA1": "SWMRx4MiZ5eQ7fG5i3w+N+3wd1g=",
+			"path": "github.com/gregdel/pushover",
+			"revision": "f24f6bc84e4cff90cdb319b2dae923f8b3efad08",
+			"revisionTime": "2016-06-17T16:43:18Z"
+		},
+		{
+			"checksumSHA1": "Sh9gSysXXXM1RDCFjI/hamW1FNY=",
+			"path": "github.com/mitchellh/hashstructure",
+			"revision": "b098c52ef6beab8cd82bc4a32422cf54b890e8fa",
+			"revisionTime": "2016-06-09T17:09:29Z"
+		},
+		{
+			"checksumSHA1": "Tv59jlJDdTKNL5jrQhxt47AAAAE=",
+			"path": "github.com/nlopes/slack",
+			"revision": "e595e9d8590a04ff76407e4e7d1791d25b095c66",
+			"revisionTime": "2016-10-30T18:15:39Z"
+		},
+		{
+			"checksumSHA1": "BoXdUBWB8UnSlFlbnuTQaPqfCGk=",
+			"path": "github.com/op/go-logging",
+			"revision": "970db520ece77730c7e4724c61121037378659d9",
+			"revisionTime": "2016-03-15T20:05:05Z"
+		},
+		{
+			"checksumSHA1": "LuFv4/jlrmFNnDb/5SCSEPAM9vU=",
+			"path": "github.com/pmezard/go-difflib/difflib",
+			"revision": "792786c7400a136282c1664665ae0a8db921c6c2",
+			"revisionTime": "2016-01-10T10:55:54Z"
+		},
+		{
+			"checksumSHA1": "KAzbLjI9MzW2tjfcAsK75lVRp6I=",
+			"path": "github.com/rcrowley/go-metrics",
+			"revision": "1f30fe9094a513ce4c700b9a54458bbb0c96996c",
+			"revisionTime": "2016-11-28T21:05:44Z"
+		},
+		{
+			"checksumSHA1": "GD1H4KZChAjOKE7y3xvbKMNLRS8=",
+			"path": "github.com/skbkontur/bot",
+			"revision": "8155c2affc6cfdd6fbab2f9df11c6b772b005861",
+			"revisionTime": "2016-12-16T16:23:20Z"
+		},
+		{
+			"checksumSHA1": "K0crHygPTP42i1nLKWphSlvOQJw=",
+			"path": "github.com/stretchr/objx",
+			"revision": "1a9d0bb9f541897e62256577b352fdbc1fb4fd94",
+			"revisionTime": "2015-09-28T12:21:52Z"
+		},
+		{
+			"checksumSHA1": "/kKwYqD04AkkDZFQhGwklKw3RFA=",
+			"path": "github.com/stretchr/testify",
+			"revision": "2402e8e7a02fc811447d11f881aa9746cdc57983",
+			"revisionTime": "2016-12-17T20:04:45Z"
+		},
+		{
+			"checksumSHA1": "JXUVA1jky8ZX8w09p2t5KLs97Nc=",
+			"path": "github.com/stretchr/testify/assert",
+			"revision": "2402e8e7a02fc811447d11f881aa9746cdc57983",
+			"revisionTime": "2016-12-17T20:04:45Z"
+		},
+		{
+			"checksumSHA1": "fg3TzS9/QK3wZbzei3Z6O8XPLHg=",
+			"path": "github.com/stretchr/testify/http",
+			"revision": "2402e8e7a02fc811447d11f881aa9746cdc57983",
+			"revisionTime": "2016-12-17T20:04:45Z"
+		},
+		{
+			"checksumSHA1": "WGwMB6WljaeGKzuNCX5M4E8LADE=",
+			"path": "github.com/stretchr/testify/mock",
+			"revision": "2402e8e7a02fc811447d11f881aa9746cdc57983",
+			"revisionTime": "2016-12-17T20:04:45Z"
+		},
+		{
+			"checksumSHA1": "t8jzPFIv4DNACv+cuZoigNmjPLQ=",
+			"path": "github.com/technoweenie/multipartstreamer",
+			"revision": "a90a01d73ae432e2611d178c18367fbaa13e0154",
+			"revisionTime": "2013-10-20T00:18:33Z"
+		},
+		{
+			"checksumSHA1": "ZybgW+BTiGsCwdXXgNbPFG46OpA=",
+			"path": "github.com/tucnak/telebot",
+			"revision": "6360f1f7d9464545d98f2b478cd83240a8ced98e",
+			"revisionTime": "2016-11-10T20:04:50Z"
+		},
+		{
+			"checksumSHA1": "7EZyXN0EmZLgGxZxK01IJua4c8o=",
+			"path": "golang.org/x/net/websocket",
+			"revision": "45e771701b814666a7eb299e6c7a57d0b1799e91",
+			"revisionTime": "2016-12-15T19:42:18Z"
+		},
+		{
+			"checksumSHA1": "6IzzHO9p32aHJhMYMwijccDUIVA=",
+			"path": "gopkg.in/alexcesaro/quotedprintable.v3",
+			"revision": "2caba252f4dc53eaf6b553000885530023f54623",
+			"revisionTime": "2015-07-16T17:19:45Z"
+		},
+		{
+			"checksumSHA1": "iq5WdjScmTU+LfNoerLuwcnXpdM=",
+			"path": "gopkg.in/gomail.v2",
+			"revision": "81ebce5c23dfd25c6c67194b37d3dd3f338c98b1",
+			"revisionTime": "2016-04-11T21:29:32Z"
+		},
+		{
+			"checksumSHA1": "AzeP9gpBdHRcPQ5ozBpkBcqfInk=",
+			"path": "gopkg.in/telegram-bot-api.v4",
+			"revision": "0a57807db79efce7f6719fbb2c0e0f83fda79aec",
+			"revisionTime": "2016-11-25T05:50:35Z"
+		},
+		{
+			"checksumSHA1": "12GqsW8PiRPnezDDy0v4brZrndM=",
+			"path": "gopkg.in/yaml.v2",
+			"revision": "a5b47d31c556af34a302ce5d659e6fea44d90de0",
+			"revisionTime": "2016-09-28T15:37:09Z"
+		}
+	],
+	"rootPath": "github.com/moira-alert/notifier"
+}

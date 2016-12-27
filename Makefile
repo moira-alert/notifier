@@ -10,14 +10,17 @@ build:
 	go build -ldflags "-X main.Version=$(VERSION)-$(RELEASE)" -o build/moira-notifier github.com/moira-alert/notifier/notifier
 
 test: prepare
-	ginkgo -r --randomizeAllSpecs --randomizeSuites -cover -coverpkg=../ --failOnPending --trace --race --progress tests
+	cd tests && ginkgo -r --randomizeAllSpecs --randomizeSuites --tags=func -cover -coverpkg=../ --failOnPending --trace --race --progress
 
 .PHONY: test
 
+lint:
+	go vet -x ./...
+	golint ./...
+
 prepare:
-	go get github.com/sparrc/gdm
-	gdm restore
-	go get github.com/onsi/ginkgo/ginkgo
+	go get github.com/kardianos/govendor
+	govendor sync
 
 clean:
 	rm -rf build
