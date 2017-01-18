@@ -1,17 +1,18 @@
 package script
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"strings"
 
 	"github.com/moira-alert/notifier"
+	"github.com/op/go-logging"
 )
 
-var log notifier.Logger
+var log *logging.Logger
 
 // Sender implements moira sender interface via script execution
 type Sender struct {
@@ -27,7 +28,7 @@ type scriptNotification struct {
 }
 
 //Init read yaml config
-func (sender *Sender) Init(senderSettings map[string]string, logger notifier.Logger) error {
+func (sender *Sender) Init(senderSettings map[string]string, logger *logging.Logger) error {
 	if senderSettings["name"] == "" {
 		return fmt.Errorf("Required name for sender type script")
 	}
@@ -73,13 +74,15 @@ func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.Co
 	}
 
 	c := exec.Command(scriptFile, args[1:]...)
-	stdin, _ := c.StdinPipe()
-	io.WriteString(stdin, string(scriptJSON))
-	io.WriteString(stdin, "\n")
-	stdin.Close()
-	scriptOutput, err := c.CombinedOutput()
+	var scriptOutput bytes.Buffer
+	c.Stdin = strings.NewReader(string(scriptJSON))
+	c.Stdout = &scriptOutput
+	log.Debugf("Executing script: %s", scriptFile)
+	err = c.Run()
+	log.Debugf("Finished executing: %s", scriptFile)
+
 	if err != nil {
-		return fmt.Errorf("Failed exec [%s] Error [%s] Output: [%s]", sender.Exec, err.Error(), string(scriptOutput))
+		return fmt.Errorf("Failed exec [%s] Error [%s] Output: [%s]", sender.Exec, err.Error(), scriptOutput.String())
 	}
 	return nil
 }
