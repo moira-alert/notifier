@@ -74,7 +74,7 @@ func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.Co
 
 	c := exec.Command(scriptFile, args[1:]...)
 	var scriptOutput bytes.Buffer
-	c.Stdin = strings.NewReader(string(scriptJSON))
+	c.Stdin = bytes.NewReader(scriptJSON)
 	c.Stdout = &scriptOutput
 	log.Debugf("Executing script: %s", scriptFile)
 	err = c.Run()
