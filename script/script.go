@@ -1,9 +1,9 @@
 package script
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"strings"
@@ -73,13 +73,15 @@ func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.Co
 	}
 
 	c := exec.Command(scriptFile, args[1:]...)
-	stdin, _ := c.StdinPipe()
-	io.WriteString(stdin, string(scriptJSON))
-	io.WriteString(stdin, "\n")
-	stdin.Close()
-	scriptOutput, err := c.CombinedOutput()
+	var scriptOutput bytes.Buffer
+	c.Stdin = strings.NewReader(string(scriptJSON))
+	c.Stdout = &scriptOutput
+	log.Debugf("Executing script: %s", scriptFile)
+	err = c.Run()
+	log.Debugf("Finished executing: %s", scriptFile)
+
 	if err != nil {
-		return fmt.Errorf("Failed exec [%s] Error [%s] Output: [%s]", sender.Exec, err.Error(), string(scriptOutput))
+		return fmt.Errorf("Failed exec [%s] Error [%s] Output: [%s]", sender.Exec, err.Error(), scriptOutput.String())
 	}
 	return nil
 }
