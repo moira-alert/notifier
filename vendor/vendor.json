@@ -157,6 +157,12 @@
 			"path": "gopkg.in/yaml.v2",
 			"revision": "a5b47d31c556af34a302ce5d659e6fea44d90de0",
 			"revisionTime": "2016-09-28T15:37:09Z"
+		},
+		{
+			"checksumSHA1": "dIustNp4c/TkgJm2yW8PKBV2rpY=",
+			"path": "github.com/tbruyelle/hipchat-go/hipchat",
+			"revision": "fc3453606408cfa87015e65ecb3309f9d1678317",
+			"revisionTime": "2016-12-02T20:42:01Z"
 		}
 	],
 	"rootPath": "github.com/moira-alert/notifier"
