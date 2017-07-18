@@ -103,7 +103,7 @@ func (sender *Sender) Init(senderSettings map[string]string, logger notifier.Log
 	if sender.Username == "" {
 		sender.Username = sender.From
 	}
-	sender.SSL, _ = strconv.ParseBool(senderSettings["ssl_disable"])
+	sender.SSL, _ = strconv.ParseBool(senderSettings["ssl"])
 
 	if sender.From == "" {
 		return fmt.Errorf("mail_from can't be empty")
