@@ -87,6 +87,7 @@ type Sender struct {
 	InsecureTLS bool
 	Password    string
 	Username    string
+	SSL         bool
 }
 
 // Init read yaml config
@@ -102,6 +103,7 @@ func (sender *Sender) Init(senderSettings map[string]string, logger notifier.Log
 	if sender.Username == "" {
 		sender.Username = sender.From
 	}
+	sender.SSL, _ = strconv.ParseBool(senderSettings["ssl_disable"])
 
 	if sender.From == "" {
 		return fmt.Errorf("mail_from can't be empty")
@@ -187,6 +189,7 @@ func (sender *Sender) SendEvents(events notifier.EventsData, contact notifier.Co
 			InsecureSkipVerify: sender.InsecureTLS,
 			ServerName:         sender.SMTPhost,
 		},
+		SSL: sender.SSL,
 	}
 
 	if sender.Password != "" {
