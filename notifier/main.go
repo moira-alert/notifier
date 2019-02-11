@@ -157,6 +157,10 @@ func configureSenders() error {
 			if err := notifier.RegisterSender(senderSettings, &twilio.Sender{}); err != nil {
 				log.Fatalf("Can not register sender %s: %s", senderSettings["type"], err)
 			}
+		case "hipchat":
+			if err := notifier.RegisterSender(senderSettings, &hipchat.Sender{}); err != nil {
+				log.Fatalf("Can not register sender %s: %s", senderSettings["type"], err)
+			}
 			//		case "email":
 			//			if err := notifier.RegisterSender(senderSettings, &kontur.MailSender{}); err != nil {
 			//			}
